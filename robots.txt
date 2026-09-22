@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+#    ^-----^
+#   ( o   o )
+#   (   @   )
+#    \_____/
+# fedesvin.dk
