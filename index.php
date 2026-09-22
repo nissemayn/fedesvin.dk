@@ -88,7 +88,7 @@ function page(string $name, ?string $shareUrl = null): never
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5c84c">
-  <title><?= e($name === '' ? 'Fedesvin.dk — kærlig kollegadrilleri' : 'Hej ' . $name . ' — Fedesvin.dk') ?></title>
+  <title><?= e($name === '' ? 'Fedesvin.dk' : 'Hej ' . $name . ' — Fedesvin.dk') ?></title>
   <meta name="description" content="<?= e($message) ?>">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/details.css">
