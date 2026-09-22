@@ -48,10 +48,10 @@ function slugify(string $value): string
 
 function issueVisitCookie(): void
 {
-    setcookie('fedesvin_seen', (string) time(), [
+    setcookie('fedesvin_seen_v2', (string) time(), [
         'expires' => time() + COOKIE_TTL,
         'path' => '/',
-        'domain' => '.' . DOMAIN,
+        'domain' => DOMAIN,
         'secure' => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https'),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -60,7 +60,7 @@ function issueVisitCookie(): void
 
 function countVisit(): void
 {
-    $seenAt = filter_var($_COOKIE['fedesvin_seen'] ?? null, FILTER_VALIDATE_INT);
+    $seenAt = filter_var($_COOKIE['fedesvin_seen_v2'] ?? null, FILTER_VALIDATE_INT);
     if ($seenAt !== false && $seenAt !== null && time() - $seenAt < COOKIE_TTL && time() >= $seenAt) {
         return;
     }
@@ -77,7 +77,7 @@ function page(string $name, ?string $shareUrl = null): never
 {
     countVisit();
     $count = visitorCount();
-    $greeting = $name !== '' ? 'Hej ' . $name . '!' : 'Hvem er dagens fedesvin?';
+    $greeting = $name !== '' ? 'Hej ' . ucfirst($name) . '!' : 'Hvem er dagens fedesvin?';
     $message = $name !== '' ? 'En eller anden synes åbenbart, at du er et fedt svin.' : 'Skriv et navn. Send linket. Skab god stemning.';
     $shareUrl ??= $name === '' ? '' : 'https://' . slugify($name) . '.' . DOMAIN;
     http_response_code(200);
