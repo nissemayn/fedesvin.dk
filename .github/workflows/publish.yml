@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: lamerz-runner
+    runs-on: [self-hosted, lamerz-runner]
     steps:
       - name: Check out source
         uses: actions/checkout@v4
