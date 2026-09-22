@@ -91,16 +91,16 @@ function page(string $name, ?string $shareUrl = null): never
   <title><?= e($name === '' ? 'Fedesvin.dk — kærlig kollegadrilleri' : 'Hej ' . $name . ' — Fedesvin.dk') ?></title>
   <meta name="description" content="<?= e($message) ?>">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/details.css">
 </head>
 <body>
   <main class="page-shell">
     <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><span class="top-note">Et kompliment. På en måde.</span></header>
     <section class="card <?= $name === '' ? 'card-home' : 'card-result' ?>">
       <div class="sticker" aria-hidden="true">✳</div>
-      <p class="eyebrow"><?= $name === '' ? 'DEN DIGITALE KOLLEGADRILLER' : 'DU ER BLEVET NOMINERET' ?></p>
       <h1><?= e($greeting) ?></h1>
       <p class="message"><?= e($message) ?></p>
-      <div class="mascot" aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span></div>
+      <div class="mascot" aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="eyes"><i></i><i></i></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span></div>
       <?php if ($name === ''): ?>
       <form class="name-form" action="/shortlink" method="post">
         <label for="name">Hvem skal have æren?</label>
@@ -139,10 +139,9 @@ if ($path === '/shortlink' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         http_response_code(400);
         page('');
     }
-    $base = slugify($name);
     $pdo = db();
     do {
-        $code = $base . '-' . bin2hex(random_bytes(2));
+        $code = bin2hex(random_bytes(6));
         $stmt = $pdo->prepare('INSERT OR IGNORE INTO shortlinks (code, name) VALUES (:code, :name)');
         $stmt->execute([':code' => $code, ':name' => $name]);
     } while ($stmt->rowCount() === 0);
@@ -158,7 +157,8 @@ if (preg_match('~^/s/([a-z0-9-]{1,50})$~', $path, $match)) {
         http_response_code(404);
         page('');
     }
-    page((string) $name, 'https://' . DOMAIN . '/s/' . $match[1]);
+    header('Location: https://' . slugify((string) $name) . '.' . DOMAIN . '/?s=' . rawurlencode($match[1]), true, 302);
+    exit;
 }
 
 $host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? DOMAIN)[0]);
@@ -166,7 +166,17 @@ $suffix = '.' . DOMAIN;
 if ($host !== DOMAIN && str_ends_with($host, $suffix)) {
     $label = substr($host, 0, -strlen($suffix));
     if (preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label)) {
-        page(normalizeName(str_replace('-', ' ', $label)));
+        $shareUrl = null;
+        $code = (string) ($_GET['s'] ?? '');
+        if ($code !== '') {
+            $stmt = db()->prepare('SELECT name FROM shortlinks WHERE code = :code');
+            $stmt->execute([':code' => $code]);
+            $linkName = $stmt->fetchColumn();
+            if ($linkName !== false && slugify((string) $linkName) === $label) {
+                $shareUrl = 'https://' . DOMAIN . '/s/' . rawurlencode($code);
+            }
+        }
+        page(normalizeName(str_replace('-', ' ', $label)), $shareUrl);
     }
 }
 page('');

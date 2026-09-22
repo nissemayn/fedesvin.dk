@@ -1,6 +1,6 @@
 # Fedesvin.dk
 
-En kærlig, lille kollegadriller inspireret af dansk internetnostalgi. Forsiden laver delbare `/s/...`-links; wildcard-subdomæner virker også som personlige sider.
+En kærlig, lille kollegadriller inspireret af dansk internetnostalgi. Forsiden laver delbare, tilfældige `/s/...`-kortlinks, der viderestiller til navnets wildcard-subdomæne. Subdomæner virker også direkte som personlige sider.
 
 ## Lokal kørsel
 
