@@ -7,7 +7,7 @@ services:
     volumes:
       - fedesvin-data:/data
     ports:
-      - "${APP_BIND_ADDRESS:-0.0.0.0}:8088:80"
+      - "8088:80"
     healthcheck:
       test: ["CMD", "php", "-r", "exit(file_get_contents('http://127.0.0.1/health') === 'ok' ? 0 : 1);"]
       interval: 30s

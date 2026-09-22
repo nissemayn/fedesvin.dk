@@ -17,7 +17,7 @@ docker run --rm -p 8080:80 -v fedesvin-data:/data fedesvin:local
 
 1. Opret en Portainer Stack fra dette Git-repository, branch `main`, Compose path `compose.yaml`.
 2. Sæt stack-variablen `IMAGE` til `ghcr.io/<github-owner>/<repo>:latest`.
-3. Sæt `APP_BIND_ADDRESS` til Docker-værtens IP-adresse, som Nginx-LXC'en kan nå. Appen bliver tilgængelig på port `8088` dér. Behold named volume `fedesvin-data`.
+3. Behold named volume `fedesvin-data`. Compose publicerer appen på port `8088` på Docker-værten; peg Nginx-LXC upstream på Docker-værtens IP og port `8088`.
 4. Slå GitOps webhook updates til for stacken. Sæt GitHub Actions secret `PORTAINER_WEBHOOK_URL` til webhook-URL'en.
 5. Gør GHCR-pakken public efter første image-push, eller konfigurér registry credentials i Portainer.
 
