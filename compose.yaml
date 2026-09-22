@@ -1,0 +1,19 @@
+services:
+  fedesvin:
+    image: ${IMAGE:?Set IMAGE to the GHCR image name and tag}
+    restart: unless-stopped
+    environment:
+      DB_PATH: /data/fedesvin.sqlite
+    volumes:
+      - fedesvin-data:/data
+    expose:
+      - "80"
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(file_get_contents('http://127.0.0.1/health') === 'ok' ? 0 : 1);"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  fedesvin-data:
