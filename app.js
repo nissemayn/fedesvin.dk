@@ -1,3 +1,9 @@
+const currentUrl = new URL(window.location.href);
+if (currentUrl.searchParams.has('s')) {
+  currentUrl.searchParams.delete('s');
+  window.history.replaceState(null, '', currentUrl.pathname + currentUrl.search + currentUrl.hash);
+}
+
 document.querySelectorAll('[data-copy]').forEach((button) => {
   button.addEventListener('click', async () => {
     const status = document.querySelector('.copy-status');
