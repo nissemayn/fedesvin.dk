@@ -78,7 +78,7 @@ function page(string $name, ?string $shareUrl = null): never
     countVisit();
     $count = visitorCount();
     $greeting = $name !== '' ? 'Hej ' . ucfirst($name) . '!' : 'Hvem er dagens fedesvin?';
-    $message = $name !== '' ? 'En eller anden synes åbenbart, at du er et fedt svin.' : 'Skriv et navn. Send linket. Skab god stemning.';
+    $message = $name !== '' ? 'En eller anden synes åbenbart, at du er et fedt svin.' : 'Skriv et navn. Send linket.';
     $shareUrl ??= $name === '' ? '' : 'https://' . slugify($name) . '.' . DOMAIN;
     http_response_code(200);
     ?>
