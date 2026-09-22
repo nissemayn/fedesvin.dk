@@ -111,7 +111,7 @@ function page(string $name, ?string $shareUrl = null): never
       <a class="again" href="https://<?= DOMAIN ?>">Lav et til <span aria-hidden="true">↗</span></a>
       <?php endif; ?>
     </section>
-    <footer><span>Gammeldags internet. Nye svin.</span><span><?= number_format($count, 0, ',', '.') ?> kærlige besøg</span></footer>
+    <footer><span>Gammeldags internet. Nye svin.</span><span><?= number_format($count, 0, ',', '.') ?> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
   </main>
   <script src="/app.js" defer></script>
 </body>
