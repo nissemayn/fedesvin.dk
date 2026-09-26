@@ -4,6 +4,7 @@ services:
     restart: unless-stopped
     environment:
       DB_PATH: /data/fedesvin.sqlite
+      TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-}
     volumes:
       - fedesvin-data:/data
     ports:

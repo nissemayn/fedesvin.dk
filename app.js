@@ -17,3 +17,30 @@ document.querySelectorAll('[data-copy]').forEach((button) => {
     }
   });
 });
+
+const submitCounter = () => {
+  const token = document.querySelector('meta[name="counter-token"]')?.content;
+  if (!token || document.visibilityState !== 'visible') return;
+
+  fetch('/counter', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: new URLSearchParams({ token }),
+    credentials: 'same-origin',
+    keepalive: true,
+  }).then(async (response) => {
+    if (response.status !== 200) return;
+    const result = await response.json();
+    const count = document.querySelector('[data-visit-count]');
+    if (count && Number.isInteger(result.visits)) {
+      count.textContent = new Intl.NumberFormat('da-DK').format(result.visits);
+    }
+  }).catch(() => {});
+};
+
+const scheduleCounter = () => window.setTimeout(submitCounter, 3000);
+if (document.readyState === 'complete') {
+  scheduleCounter();
+} else {
+  window.addEventListener('load', scheduleCounter, { once: true });
+}

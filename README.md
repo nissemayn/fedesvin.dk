@@ -25,7 +25,9 @@ Push til `main` bygger og pusher både `latest` og et immutable commit-SHA-tag t
 
 ## Tælleren og links
 
-SQLite gemmer det samlede antal besøg og kortlinks. En sikker, HttpOnly-cookie på domænet `fedesvin.dk` gør, at samme browser tæller højst én gang pr. otte timer på tværs af siden. Cookie-sletning, privat browsing og bots uden cookies kan stadig påvirke tallet. Der gemmes ingen IP-adresser.
+HTML-sidevisninger tæller ikke i sig selv. JavaScript sender et POST til `/counter` tre sekunder efter `load`, men kun mens siden er synlig. SQLite gemmer totalen i den eksisterende `stats`-tabel, samt HMAC-baserede visitor hashes og rate-limit hashes; rå IP-adresser gemmes ikke. Samme IP/User-Agent-kombination tæller højst én gang pr. otte timer. Et signeret sidetoken er bundet til IP og User-Agent og udløber efter 15 minutter. En secret fra `COUNTER_SECRET` bruges, hvis den er sat; ellers oprettes en tilfældig secret i det persistente `/data`-volume.
+
+Counter-endpointet filtrerer almindelige bot/crawler User-Agent-strenge og tillader højst 30 POST-requests pr. IP pr. minut. Visitor- og rate-limit-rækker ryddes probabilistisk på cirka 1 % af gyldige counter-requests. Sæt `TRUSTED_PROXY_IPS` i Portainer til Zoraxys IP-adresse(r), som app-containeren ser i `REMOTE_ADDR` (fx `192.168.1.152`). Zoraxy skal sende `X-Forwarded-For`; forwarded IP bruges kun, når den direkte forbindelse kommer fra en konfigureret betroet proxy.
 
 Kortlinks bruger tilfældige suffikser for at undgå kollisioner. De ligger i databasen og overlever deploys via `fedesvin-data`.
 
