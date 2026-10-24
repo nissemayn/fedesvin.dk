@@ -96,7 +96,7 @@ if (pig) {
     const party = pokes % 5 === 0;
     const caption = document.querySelector('.pig-caption');
     if (party) {
-      if (caption) caption.textContent = 'SVINEFEST! Du har fundet trynens hemmelighed.';
+      if (caption) caption.textContent = 'FEM ØF! Grisen kræver en snackpause.';
     } else {
       // Pick uniformly from every line except the previous one.
       const choice = Math.floor(Math.random() * (lines.length - (lastLine === -1 ? 0 : 1)));
