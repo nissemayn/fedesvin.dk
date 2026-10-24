@@ -24,10 +24,9 @@ document.querySelectorAll('.retro-banner').forEach((banner) => {
     toggle.setAttribute('aria-label', running ? 'Sæt rulleteksten på pause' : 'Start rulleteksten');
     toggle.setAttribute('aria-pressed', String(running));
   };
-  setRunning(!reducedMotion.matches);
+  setRunning(true);
   toggle.hidden = false;
   toggle.addEventListener('click', () => setRunning(banner.dataset.running !== 'true'));
-  reducedMotion.addEventListener('change', () => setRunning(!reducedMotion.matches));
 });
 
 const retroToggle = document.querySelector('.retro-toggle');
