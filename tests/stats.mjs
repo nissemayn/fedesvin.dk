@@ -120,6 +120,13 @@ try {
   guestbookHtml = await (await request('/gaestebog')).text();
   assert.doesNotMatch(guestbookHtml, /Hej gris! &lt;script&gt;/, 'Admin can delete guestbook entries');
   assert.match(guestbookHtml, /Første øf i gæstebogen!/, 'Seeded first entry remains');
+  const seedAdminPage = await request('/gaestebog/admin', 'fedesvin.dk', { headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
+  const seedAdminHtml = await seedAdminPage.text();
+  const seedCsrf = seedAdminHtml.match(/name="csrf" value="([^"]+)"/)[1];
+  const deleteSeed = await request('/gaestebog/admin', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ csrf: seedCsrf, id: '1', action: 'delete' }), headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
+  assert.equal(deleteSeed.status, 303, 'Admin can delete the seeded welcome entry');
+  guestbookHtml = await (await request('/gaestebog')).text();
+  assert.doesNotMatch(guestbookHtml, /Første øf i gæstebogen!/, 'Deleted welcome entry is not re-created on the next request');
   assert.equal((await request('/guestbook.css')).status, 200);
   assert.equal((await request('/guestbook.php')).status, 404, 'PHP view cannot be opened directly');
   const kasper = await getToken('kasper.fedesvin.dk');
