@@ -50,7 +50,8 @@ button.mascot:focus-visible{outline:3px solid var(--blue);outline-offset:8px}
 @keyframes pig-boing{0%,100%{transform:translateY(0) scale(1) rotate(0)}15%{transform:translateY(7px) scale(1.2,.78)}42%{transform:translateY(-46px) scale(.93,1.08) rotate(-10deg)}65%{transform:translateY(0) scale(1.17,.82) rotate(6deg)}82%{transform:translateY(-13px) scale(.96,1.04) rotate(-3deg)}}
 @keyframes pig-party{0%,100%{transform:translateY(0) rotate(0)}20%{transform:translateY(-52px) rotate(-18deg) scale(1.1)}40%{transform:translateY(0) rotate(8deg) scale(1.15,.82)}65%{transform:translateY(-36px) rotate(18deg)}85%{transform:translateY(0) scale(1.12,.9)}}
 @keyframes pig-small-hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-16px) scale(1.04)}}
-.pig-confetti{position:absolute;left:50%;top:40%;font-size:21px;pointer-events:none;z-index:5;animation:pig-confetti .9s ease-out forwards}
+.pig-confetti{position:absolute;left:50%;top:40%;font-size:21px;font-weight:800;color:var(--pink);pointer-events:none;z-index:5;animation:pig-confetti 1.4s ease-out forwards}
+@keyframes pig-confetti-soft{0%{opacity:0}20%,75%{opacity:1}100%{opacity:0}}
 @keyframes pig-confetti{from{transform:translate(-50%,0) scale(.6);opacity:1}to{transform:translate(calc(-50% + var(--confetti-x)),-105px) rotate(var(--confetti-turn));opacity:0}}
 .personal-message{max-width:460px;overflow-wrap:anywhere;margin:18px auto 0;padding:12px 16px;border-left:3px solid var(--pink);background:#f6f0df;border-radius:0 5px 5px 0;font-size:16px;line-height:1.5;white-space:pre-wrap}
 .message-option{margin-top:13px;font-size:12px}
@@ -83,4 +84,4 @@ body[data-retro="true"] .retro-badges{display:flex;justify-content:center;flex-w
 body[data-retro="true"] .input-row button,body[data-retro="true"] .copy-button,body[data-retro="true"] .retro-toggle{border:3px outset #ccc;border-radius:0;box-shadow:none;background:#c0c0c0;color:#000}
 @keyframes retro-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(max-width:520px){.mascot-stage .mascot{margin-bottom:6px}.pig-caption{font-size:10px}.personal-message{font-size:14px;padding:9px 12px}.image-download+.again{margin-left:16px}.name-form{margin-top:14px}.card{margin-top:auto;margin-bottom:auto}.message-option{margin-top:10px}}
-@media(prefers-reduced-motion:reduce){.mascot{animation:none!important}.mascot.is-poked,.mascot.is-party{animation:pig-small-hop .35s ease-out!important}.pig-confetti{display:none}}
+@media(prefers-reduced-motion:reduce){.mascot{animation:none!important}.mascot.is-poked,.mascot.is-party{animation:pig-small-hop .35s ease-out!important}.pig-confetti{transform:translate(calc(-50% + var(--confetti-x)),var(--confetti-y));animation:pig-confetti-soft 1.4s ease-out forwards!important}}

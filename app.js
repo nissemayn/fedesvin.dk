@@ -64,19 +64,52 @@ if (pig) {
 
   let pokes = 0;
   let resetAnimation;
+  let lastLine = -1;
+  const lines = [
+    'ØF! Hallo, personlig svinezone!',
+    'Jeg er ikke tyk. Jeg er widescreen.',
+    'Den sidste kage? Aner ikke noget.',
+    'Tryk igen. Det tæller som motion.',
+    'Min sixpack er bare vakuumpakket.',
+    'Jeg er ikke doven. Jeg er på strømsparetilstand.',
+    'Det her er min vinterkrop. Hele året.',
+    'Du trykker. Jeg tænker på snacks.',
+    'Jeg har store planer. De fleste involverer sovs.',
+    'Min personlige træner hedder Just Eat.',
+    'Det er ikke en dobbelthage. Det er en nødreserve.',
+    'Jeg løber kun, hvis nogen siger buffet.',
+    'Flæsk er også en slags polstring.',
+    'Stop med at prikke. Jeg taber koncentrationen om kagen.',
+    'Jeg har cookies. Desværre kun i browseren.',
+    '404: Selvdisciplin blev ikke fundet.',
+    'Jeg er bygget til hygge, ikke hastighed.',
+    'Tryn Ctrl+Alt+Del. Det hjælper ikke, men prøv.',
+    'Jeg har ikke taget på. Jeg er blevet opgraderet.',
+    'Et øf om dagen holder seriøsiteten væk.',
+    'Min yndlingssport? Kagekast. Direkte i munden.',
+    'Jeg er ikke rund. Jeg er aerodynamisk udfordret.',
+    'Du har nu rørt mere gris end en landmand på hjemmekontor.',
+    'Der er ingen fortryd-knap på den sidste frikadelle.',
+  ];
   pig.addEventListener('click', () => {
     pokes += 1;
     const party = pokes % 5 === 0;
-    const lines = ['ØF! Hallo, personlig svinezone!', 'Jeg er ikke tyk. Jeg er widescreen.', 'Den sidste kage? Aner ikke noget.', 'Tryk igen. Det tæller som motion.'];
     const caption = document.querySelector('.pig-caption');
-    if (caption) caption.textContent = party ? 'SVINEFEST! Du har fundet trynens hemmelighed.' : lines[(pokes - 1) % lines.length];
+    if (party) {
+      if (caption) caption.textContent = 'SVINEFEST! Du har fundet trynens hemmelighed.';
+    } else {
+      // Pick uniformly from every line except the previous one.
+      const choice = Math.floor(Math.random() * (lines.length - (lastLine === -1 ? 0 : 1)));
+      lastLine = choice >= lastLine && lastLine !== -1 ? choice + 1 : choice;
+      if (caption) caption.textContent = lines[lastLine];
+    }
     window.clearTimeout(resetAnimation);
     pig.classList.remove('is-poked', 'is-party');
     // Restart the same short animation on subsequent clicks.
     void pig.offsetWidth;
     pig.classList.add(party ? 'is-party' : 'is-poked');
     resetAnimation = window.setTimeout(() => pig.classList.remove('is-poked', 'is-party'), 1150);
-    if (party && !reducedMotion.matches) {
+    if (party) {
       // Bound the number of elements even if somebody goes all-in on the snout.
       document.querySelectorAll('.pig-confetti').forEach((item) => item.remove());
       for (let i = 0; i < 10; i += 1) {
@@ -86,8 +119,9 @@ if (pig) {
         confetti.textContent = ['✦', '♥', 'ØF', '★'][i % 4];
         confetti.style.setProperty('--confetti-x', `${(i - 4.5) * 28}px`);
         confetti.style.setProperty('--confetti-turn', `${(i - 4.5) * 20}deg`);
+        confetti.style.setProperty('--confetti-y', `${-20 - (i % 4) * 18}px`);
         pig.parentElement.append(confetti);
-        window.setTimeout(() => confetti.remove(), 1000);
+        window.setTimeout(() => confetti.remove(), 1500);
       }
     }
   });
