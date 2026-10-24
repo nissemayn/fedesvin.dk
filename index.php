@@ -434,7 +434,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
       <?php endif; ?>
     </section>
     <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/gaestebog">Gæstebog</a> · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
-    <a class="geo-badge" href="https://<?= DOMAIN ?>/gaestebog" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></a>
+    <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
     <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
   <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>

@@ -286,7 +286,7 @@ header('Content-Type: text/html; charset=utf-8');
       <p class="guestbook-admin-link"><a href="/gaestebog/admin">Moderér gæstebogen</a></p>
     </section>
     <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
-    <a class="geo-badge" href="/gaestebog" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></a>
+    <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
   </main>
   <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>
 </body>

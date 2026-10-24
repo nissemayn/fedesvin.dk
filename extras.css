@@ -8,8 +8,8 @@ button.mascot:focus-visible{outline:3px solid var(--blue);outline-offset:8px}
 .sound-toggle{display:block;margin:-12px auto 0;padding:5px 9px;border:1px solid #8f8260;border-radius:99px;background:#fff8dc;color:var(--ink);font:700 11px system-ui,sans-serif;cursor:pointer}
 .sound-toggle[hidden]{display:none}
 .sound-toggle:focus-visible,.geo-badge:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-.geo-badge{width:112px;height:42px;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border:3px ridge #ddd;background:linear-gradient(135deg,#1b237a,#7c178d 55%,#ef3d24);color:#fff;text-decoration:none;text-align:center;text-shadow:1px 1px #000;font:700 7px/1.1 "Courier New",monospace;box-shadow:2px 2px #0007;transform:rotate(-1deg)}
-.geo-badge strong{font-size:11px;color:#fff600;letter-spacing:-.5px}
+.geo-badge{width:132px;height:50px;margin:8px auto 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:3px ridge #ddd;background:linear-gradient(135deg,#1b237a,#7c178d 55%,#ef3d24);color:#fff;text-decoration:none;text-align:center;text-shadow:1px 1px #000;font:700 8px/1.1 "Courier New",monospace;box-shadow:2px 2px #0007;transform:rotate(-1deg)}
+.geo-badge strong{font-size:13px;color:#fff600;letter-spacing:-.5px}
 .geo-badge:hover{filter:brightness(1.15);transform:rotate(1deg) scale(1.04)}
 .mascot[data-pig="rose"],.mascot[data-pig="rose"] .ear{background:#f3a5b7}
 .mascot[data-pig="rose"]{box-shadow:inset 0 -12px #de829c}
