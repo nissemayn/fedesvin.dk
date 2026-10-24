@@ -89,26 +89,9 @@ if (retroToggle) {
 
 const pig = document.querySelector('[data-pig]');
 if (pig) {
-  const soundToggle = document.querySelector('[data-pig-sound]');
-  let soundEnabled = readPreference('fedesvin-pig-sound') !== 'false';
   const pigAudio = new Audio('/assets/pig-oink.ogg');
   pigAudio.preload = 'auto';
-  const updateSoundToggle = () => {
-    if (!soundToggle) return;
-    soundToggle.textContent = soundEnabled ? '🔊 Griselyd: til' : '🔇 Griselyd: fra';
-    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-  };
-  if (soundToggle) {
-    updateSoundToggle();
-    soundToggle.hidden = pigAudio.canPlayType('audio/ogg; codecs="vorbis"') === '';
-    soundToggle.addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      savePreference('fedesvin-pig-sound', String(soundEnabled));
-      updateSoundToggle();
-    });
-  }
   const playOink = () => {
-    if (!soundEnabled) return;
     pigAudio.currentTime = 0;
     void pigAudio.play().catch(() => {});
   };
