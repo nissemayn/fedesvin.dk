@@ -32,10 +32,10 @@ function guestbookAdminCredentials(): array
 function guestbookRequireAdmin(): void
 {
     $expectedPassword = getenv('GUESTBOOK_ADMIN_PASSWORD');
-    if (!is_string($expectedPassword) || strlen($expectedPassword) < 16) {
+    if (!is_string($expectedPassword) || strlen($expectedPassword) < 8) {
         http_response_code(503);
         header('Content-Type: text/plain; charset=utf-8');
-        echo 'Administration kræver GUESTBOOK_ADMIN_PASSWORD på mindst 16 tegn i Portainer.';
+        echo 'Administration kræver GUESTBOOK_ADMIN_PASSWORD på mindst 8 tegn i Portainer.';
         exit;
     }
 

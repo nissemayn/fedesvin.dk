@@ -407,7 +407,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
         <button type="button" class="mascot" data-pig="<?= e($variant) ?>" aria-label="Prik til grisen" title="Prik til grisen"><span aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="eyes"><i></i><i></i></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span><span class="pig-accessory"></span></span></button>
         <p class="pig-caption" aria-live="polite"></p>
       </div>
-      <button type="button" class="sound-toggle" data-pig-sound aria-pressed="true" hidden>🔊 ØF-lyd: til</button>
+      <button type="button" class="sound-toggle" data-pig-sound aria-pressed="true" hidden>🔊 Griselyd: til</button>
       <?php if ($name === ''): ?>
       <form class="name-form" action="/shortlink" method="post">
         <label for="name">Hvem skal have æren?</label>

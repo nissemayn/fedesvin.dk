@@ -11,6 +11,7 @@ RUN apt-get update \
 
 WORKDIR /var/www/html
 COPY index.php stats.php guestbook.php share-image.php style.css details.css stats.css guestbook.css extras.css app.js robots.txt ./
+COPY assets/ ./assets/
 
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \

@@ -18,7 +18,7 @@ docker run --rm -p 8080:80 -v fedesvin-data:/data fedesvin:local
 1. Opret en Portainer Stack fra dette Git-repository, branch `main`, Compose path `compose.yaml`.
 2. Sæt stack-variablen `IMAGE` til `ghcr.io/<github-owner>/<repo>:latest`.
 3. Behold named volume `fedesvin-data`. Compose publicerer appen på port `8088` på Docker-værten; peg Zoraxy upstream på Docker-værtens IP og port `8088`.
-4. Sæt `GUESTBOOK_ADMIN_PASSWORD` som stack environment variable i Portainer; brug en unik adgangskode på mindst 16 tegn. Valgfrit kan `GUESTBOOK_ADMIN_USER` ændre standardbrugeren `admin`.
+4. Sæt `GUESTBOOK_ADMIN_PASSWORD` som stack environment variable i Portainer; brug en unik adgangskode på mindst 8 tegn. Valgfrit kan `GUESTBOOK_ADMIN_USER` ændre standardbrugeren `admin`.
 5. Slå GitOps webhook updates til for stacken. Sæt GitHub Actions secret `PORTAINER_WEBHOOK_URL` til webhook-URL'en.
 6. Gør GHCR-pakken public efter første image-push, eller konfigurér registry credentials i Portainer.
 
@@ -42,7 +42,7 @@ Subdomænestatistik starter ved denne opdatering; historiske besøg kan ikke for
 
 `/gaestebog` viser indlæg med det samme. Hvert opslag har et valgfrit navn og en besked på op til 400 tegn. Honeypot, IP-bundet signeret formular-token og en grænse på tre opslag pr. IP pr. time dæmper spam; kun HMAC-hashes af IP-adresser gemmes i `guestbook_rate_limits`. Gæstebogen starter automatisk med ét velkomstindlæg.
 
-`/gaestebog/admin` bruger HTTP Basic Auth. Sæt `GUESTBOOK_ADMIN_PASSWORD` i Portainer Stack environment variables før brug; brugernavnet er `admin`, medmindre `GUESTBOOK_ADMIN_USER` er sat. Adminsiden har CSRF-beskyttede sletteknapper. Der findes ingen offentlig slettefunktion. Nye opslag bliver synlige med det samme, så moderering her betyder at kunne fjerne uønskede indlæg.
+`/gaestebog/admin` bruger HTTP Basic Auth. Sæt `GUESTBOOK_ADMIN_PASSWORD` på mindst 8 tegn i Portainer Stack environment variables før brug; brugernavnet er `admin`, medmindre `GUESTBOOK_ADMIN_USER` er sat. Adminsiden har CSRF-beskyttede sletteknapper. Der findes ingen offentlig slettefunktion. Nye opslag bliver synlige med det samme, så moderering her betyder at kunne fjerne uønskede indlæg.
 
 ## Ældre udgave
 
@@ -52,7 +52,7 @@ Den oprindelige PHP-side er bevaret i Git-branchen `legacy`.
 
 Kortlinkformularen kan gemme en valgfri besked på højst 160 Unicode-tegn. Den eksisterende `shortlinks`-tabel migreres automatisk med `message TEXT NOT NULL DEFAULT ''`; gamle kortlinks virker fortsat. Beskeder behandles som ren tekst og HTML-escapes ved visning. Et kortlink viderestiller nu til `navn.fedesvin.dk/p/<kode>`, så beskeden og det oprindelige navn bevares ved genindlæsning. Gamle `?s=<kode>`-adresser understøttes fortsat. Beskeder er offentlige for dem, der har linket, og indgår også i linkets chat-preview og billedkort.
 
-Grisen har ni varianter: klassisk, rosa, mint, business, fest, royal, goth, pirat og rumgris. JavaScript vælger en ny ved hver sidevisning og bruger lokal browserlagring til at undgå samme variant to gange i træk på samme domæne. Uden lagringsadgang er valget stadig tilfældigt, men kan gentage sig. Tryk eller tastaturaktivering giver et hop, en syntetisk ØF-lydeffekt og en tilfældig sætning fra 24 muligheder, uden samme sætning to gange i træk; lyden kan slås fra, og hvert femte tryk giver hop og konfetti. Retro-mode deles mellem domænet og dets subdomæner via en cookie. Rulleteksten starter automatisk og kan altid sættes på pause. Et Netscape 4.0-badge fuldender svinestien.
+Grisen har ni varianter: klassisk, rosa, mint, business, fest, royal, goth, pirat og rumgris. JavaScript vælger en ny ved hver sidevisning og bruger lokal browserlagring til at undgå samme variant to gange i træk på samme domæne. Uden lagringsadgang er valget stadig tilfældigt, men kan gentage sig. Tryk eller tastaturaktivering giver et hop, en optaget griselyd og en tilfældig sætning fra 24 muligheder, uden samme sætning to gange i træk; lyden kan slås fra, og hvert femte tryk giver hop og konfetti. Griselyden er “Mudchute pig 2” af Secretlondon (optaget på Mudchute City Farm i 2007), Wikimedia Commons, [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/); lyden bruges uændret. Retro-mode deles mellem domænet og dets subdomæner via en cookie. Rulleteksten starter automatisk og kan altid sættes på pause. Et Netscape 4.0-badge fuldender svinestien.
 
 `/share-image.png` laver et 1200 × 630 PNG-kort med PHP GD og DejaVu-skrifttyper fra Docker-imaget. `?code=<kortlinkkode>` medtager navn og besked; `?name=<navn>` understøtter direkte subdomæner. `download=1` sender billedet som download, og `v` kan vælge en af de ni grisevarianter. Formularresultatets download matcher den viste variant. Open Graph- og Twitter-metadata peger på PNG-billedet. Chat-apps kan cache deres previews; en allerede delt adresse kan derfor beholde sit gamle preview i en periode. Billeder, previews og almindelige HTML-downloads tæller ikke som besøg.
 
