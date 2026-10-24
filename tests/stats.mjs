@@ -77,6 +77,13 @@ try {
   assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   assert.equal(bytes.readUInt32BE(16), 1200);
   assert.equal(bytes.readUInt32BE(20), 630);
+  for (const variant of ['classic', 'rose', 'mint', 'party', 'royal', 'goth', 'pirate', 'space']) {
+    const variantImage = await request(`/share-image.png?code=${personalCode}&v=${variant}`);
+    assert.equal(variantImage.status, 200, `${variant} must render`);
+    const variantBytes = Buffer.from(await variantImage.arrayBuffer());
+    assert.equal(variantBytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+    assert.notDeepEqual(variantBytes, bytes, `${variant} must differ from business`);
+  }
   assert.equal((await request('/share-image.png?code=000000000000')).status, 404);
   assert.equal((await request('/s/000000000000')).status, 404);
   for (const asset of ['/extras.css', '/app.js']) assert.equal((await request(asset)).status, 200);

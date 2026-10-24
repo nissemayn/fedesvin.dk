@@ -103,7 +103,7 @@ foreach (imageTextLines($message, $font, $messageSize, 640) as $line) {
     $y += $messageSize + 12;
 }
 
-$pigColor = $color(['classic' => 'a6cee9', 'rose' => 'f3a5b7', 'mint' => 'a8d5b5', 'business' => 'c0b6df', 'party' => 'f6cb73', 'royal' => 'e4b4ed'][$variant]);
+$pigColor = $color(['classic' => 'a6cee9', 'rose' => 'f3a5b7', 'mint' => 'a8d5b5', 'business' => 'c0b6df', 'party' => 'f6cb73', 'royal' => 'e4b4ed', 'goth' => 'b9b0c9', 'pirate' => '7ec4bc', 'space' => '9fbee0'][$variant]);
 imagefilledellipse($image, 868, 196, 67, 94, $ink);
 imagefilledellipse($image, 868, 196, 59, 86, $pigColor);
 imagefilledellipse($image, 1022, 196, 67, 94, $ink);
@@ -134,6 +134,32 @@ if ($variant === 'business') {
 } elseif ($variant === 'royal') {
     imagefilledpolygon($image, [891, 178, 882, 125, 919, 148, 945, 114, 973, 148, 1009, 125, 1000, 178], $yellow);
     imagepolygon($image, [891, 178, 882, 125, 919, 148, 945, 114, 973, 148, 1009, 125, 1000, 178], $ink);
+} elseif ($variant === 'goth') {
+    imagefilledpolygon($image, [861, 201, 873, 146, 904, 163, 918, 121, 943, 158, 972, 132, 986, 164, 1015, 147, 1031, 201], $ink);
+    imagefilledpolygon($image, [921, 132, 936, 136, 948, 190, 933, 190], $color('cf4d9b'));
+    imagefilledellipse($image, 903, 252, 24, 28, $ink);
+    imagefilledellipse($image, 984, 252, 24, 28, $ink);
+    imagefilledellipse($image, 900, 247, 6, 6, $paper);
+    imagefilledellipse($image, 981, 247, 6, 6, $paper);
+} elseif ($variant === 'pirate') {
+    imagefilledpolygon($image, [849, 196, 857, 141, 904, 160, 945, 117, 987, 160, 1033, 141, 1041, 196], $ink);
+    imagefilledellipse($image, 945, 165, 21, 21, $paper);
+    imagefilledellipse($image, 941, 164, 5, 5, $ink);
+    imagefilledellipse($image, 950, 164, 5, 5, $ink);
+    imageline($image, 935, 181, 955, 181, $paper);
+    imagesetthickness($image, 6);
+    imageline($image, 858, 264, 1032, 233, $ink);
+    imagefilledellipse($image, 984, 251, 45, 40, $ink);
+    imagesetthickness($image, 3);
+} elseif ($variant === 'space') {
+    imagesetthickness($image, 10);
+    imageellipse($image, 945, 285, 300, 266, $ink);
+    imagesetthickness($image, 5);
+    imageellipse($image, 945, 285, 300, 266, $paper);
+    imagesetthickness($image, 3);
+    imageline($image, 1033, 175, 1043, 135, $ink);
+    imagefilledellipse($image, 1043, 130, 23, 23, $ink);
+    imagefilledellipse($image, 1043, 130, 17, 17, $yellow);
 }
 imagettftext($image, 12, 0, 856, 445, $muted, $bold, 'ET KOMPLIMENT.');
 imagettftext($image, 12, 0, 867, 468, $muted, $bold, 'PÅ EN MÅDE.');

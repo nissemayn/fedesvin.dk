@@ -50,7 +50,7 @@ if (retroToggle) {
 
 const pig = document.querySelector('[data-pig]');
 if (pig) {
-  const variants = ['classic', 'rose', 'mint', 'business', 'party', 'royal'];
+  const variants = ['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'];
   const previous = readPreference('fedesvin-last-pig');
   const choices = variants.filter((variant) => variant !== previous);
   const variant = choices[Math.floor(Math.random() * choices.length)];

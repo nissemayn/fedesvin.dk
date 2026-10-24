@@ -83,7 +83,7 @@ function displayName(string $name): string
 
 function pigVariants(): array
 {
-    return ['classic', 'rose', 'mint', 'business', 'party', 'royal'];
+    return ['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'];
 }
 
 function shortlink(string $code): ?array
