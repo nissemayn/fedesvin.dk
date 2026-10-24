@@ -66,6 +66,53 @@ if (retroToggle) {
 
 const pig = document.querySelector('[data-pig]');
 if (pig) {
+  const soundToggle = document.querySelector('[data-pig-sound]');
+  let soundEnabled = readPreference('fedesvin-pig-sound') !== 'false';
+  let pigAudio;
+  const updateSoundToggle = () => {
+    if (!soundToggle) return;
+    soundToggle.textContent = soundEnabled ? '🔊 ØF-lyd: til' : '🔇 ØF-lyd: fra';
+    soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  };
+  if (soundToggle) {
+    updateSoundToggle();
+    soundToggle.hidden = !(window.AudioContext || window.webkitAudioContext);
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      savePreference('fedesvin-pig-sound', String(soundEnabled));
+      updateSoundToggle();
+    });
+  }
+  const playOink = () => {
+    if (!soundEnabled) return;
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      pigAudio ??= new AudioContext();
+      if (pigAudio.state === 'suspended') void pigAudio.resume();
+      const start = pigAudio.currentTime;
+      [[0, 320, 125, 0.17], [0.2, 270, 105, 0.22]].forEach(([delay, high, low, duration]) => {
+        const oscillator = pigAudio.createOscillator();
+        const filter = pigAudio.createBiquadFilter();
+        const volume = pigAudio.createGain();
+        const begins = start + delay;
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(high, begins);
+        oscillator.frequency.exponentialRampToValueAtTime(low, begins + duration);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1150, begins);
+        filter.frequency.exponentialRampToValueAtTime(620, begins + duration);
+        volume.gain.setValueAtTime(0.001, begins);
+        volume.gain.linearRampToValueAtTime(0.075, begins + 0.025);
+        volume.gain.exponentialRampToValueAtTime(0.001, begins + duration);
+        oscillator.connect(filter);
+        filter.connect(volume);
+        volume.connect(pigAudio.destination);
+        oscillator.start(begins);
+        oscillator.stop(begins + duration + 0.01);
+      });
+    } catch {}
+  };
   const variants = ['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'];
   const previous = readPreference('fedesvin-last-pig');
   const choices = variants.filter((variant) => variant !== previous);
@@ -108,6 +155,7 @@ if (pig) {
     'Der er ingen fortryd-knap på den sidste frikadelle.',
   ];
   pig.addEventListener('click', () => {
+    playOink();
     pokes += 1;
     const party = pokes % 5 === 0;
     const caption = document.querySelector('.pig-caption');

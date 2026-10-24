@@ -44,6 +44,10 @@ function db(): PDO
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS subdomain_stats (subdomain TEXT PRIMARY KEY, visits INTEGER NOT NULL DEFAULT 0, first_counted_at INTEGER NOT NULL, last_counted_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_subdomain_visitors (subdomain TEXT NOT NULL, visitor_hash TEXT NOT NULL, last_seen INTEGER NOT NULL, PRIMARY KEY (subdomain, visitor_hash))');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT NOT NULL, message TEXT NOT NULL, created_at INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
+    $welcome = $pdo->prepare('INSERT OR IGNORE INTO guestbook_entries (id, author, message, created_at) VALUES (1, :author, :message, :created_at)');
+    $welcome->execute([':author' => 'Codex', ':message' => 'Første øf i gæstebogen! Den er åben, Netscape er installeret, og ingen har spildt sovs på tastaturet endnu.', ':created_at' => time()]);
     return $pdo;
 }
 
@@ -175,6 +179,28 @@ function createCounterToken(string $ip, string $userAgent): string
     $payload = time() . '.' . bin2hex(random_bytes(16));
     $signature = hash_hmac('sha256', $payload . '|' . $ip . '|' . $userAgent . '|' . (requestSubdomain() ?? ''), counterSecret());
     return $payload . '.' . $signature;
+}
+
+function createGuestbookToken(): string
+{
+    $payload = time() . '.' . bin2hex(random_bytes(16));
+    $signature = hash_hmac('sha256', 'guestbook|' . $payload . '|' . clientIp() . '|' . requestUserAgent(), counterSecret());
+    return $payload . '.' . $signature;
+}
+
+function validGuestbookToken(string $token): bool
+{
+    if (!preg_match('/^(\d{10})\.([a-f0-9]{32})\.([a-f0-9]{64})$/', $token, $parts)) {
+        return false;
+    }
+    $issuedAt = (int) $parts[1];
+    $now = time();
+    if ($issuedAt > $now || $now - $issuedAt > 1800) {
+        return false;
+    }
+    $payload = $parts[1] . '.' . $parts[2];
+    $expected = hash_hmac('sha256', 'guestbook|' . $payload . '|' . clientIp() . '|' . requestUserAgent(), counterSecret());
+    return hash_equals($expected, $parts[3]);
 }
 
 function validCounterToken(string $token, string $ip, string $userAgent, string $secret, int $now): bool
@@ -381,6 +407,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
         <button type="button" class="mascot" data-pig="<?= e($variant) ?>" aria-label="Prik til grisen" title="Prik til grisen"><span aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="eyes"><i></i><i></i></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span><span class="pig-accessory"></span></span></button>
         <p class="pig-caption" aria-live="polite"></p>
       </div>
+      <button type="button" class="sound-toggle" data-pig-sound aria-pressed="true" hidden>🔊 ØF-lyd: til</button>
       <?php if ($name === ''): ?>
       <form class="name-form" action="/shortlink" method="post">
         <label for="name">Hvem skal have æren?</label>
@@ -393,7 +420,8 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
       <a class="again" href="https://<?= DOMAIN ?>">Lav et til <span aria-hidden="true">↗</span></a>
       <?php endif; ?>
     </section>
-    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/gaestebog">Gæstebog</a> · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <a class="geo-badge" href="https://<?= DOMAIN ?>/gaestebog" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></a>
     <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
   <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>
@@ -410,6 +438,10 @@ if ($path === '/share-image.png') {
 }
 if ($path === '/stats' || $path === '/stats/') {
     require __DIR__ . '/stats.php';
+    exit;
+}
+if ($path === '/gaestebog' || $path === '/gaestebog/' || $path === '/gaestebog/admin') {
+    require __DIR__ . '/guestbook.php';
     exit;
 }
 if ($path === '/counter') {

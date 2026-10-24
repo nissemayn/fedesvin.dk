@@ -5,6 +5,8 @@ services:
     environment:
       DB_PATH: /data/fedesvin.sqlite
       TRUSTED_PROXY_IPS: ${TRUSTED_PROXY_IPS:-}
+      GUESTBOOK_ADMIN_USER: ${GUESTBOOK_ADMIN_USER:-admin}
+      GUESTBOOK_ADMIN_PASSWORD: ${GUESTBOOK_ADMIN_PASSWORD:-}
     volumes:
       - fedesvin-data:/data
     ports:
