@@ -9,7 +9,7 @@ RUN apt-get update \
     && chown www-data:www-data /data
 
 WORKDIR /var/www/html
-COPY index.php style.css details.css app.js robots.txt ./
+COPY index.php stats.php style.css details.css stats.css app.js robots.txt ./
 
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \

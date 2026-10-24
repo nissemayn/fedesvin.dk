@@ -31,6 +31,16 @@ Counter-endpointet filtrerer almindelige bot/crawler User-Agent-strenge og tilla
 
 Kortlinks bruger tilfældige suffikser for at undgå kollisioner. De ligger i databasen og overlever deploys via `fedesvin-data`.
 
+## Offentlig statistik
+
+`/stats` viser de 20 mest besøgte subdomæner, den eksisterende besøgstotal, summerede subdomænebesøg, antal besøgte subdomæner og antal oprettede kortlinks. Der vises ingen visitor hashes, IP-adresser, tokens eller kortlinkkoder. Statistiksidevisninger tælles ikke.
+
+Subdomænestatistik starter ved denne opdatering; historiske besøg kan ikke fordeles på subdomæner. `subdomain_stats` gemmer summer og første/seneste tællede tidspunkt. `counter_subdomain_visitors` deduplikerer på `(subdomain, visitor_hash)` i otte timer og ryddes sammen med den eksisterende visitor-tabel. Begge tabeller oprettes automatisk i den eksisterende SQLite-database. Registrering og increment sker i samme låste transaktion som den globale tæller. Globale besøg deduplikeres fortsat på tværs af domæner, mens hvert subdomæne har sit eget vindue; summerne er derfor ikke direkte sammenlignelige. Counter-tokenet er også bundet til subdomænet, så det ikke kan genbruges til at tælle på et andet subdomæne.
+
 ## Ældre udgave
 
 Den oprindelige PHP-side er bevaret i Git-branchen `legacy`.
+
+## Test
+
+Kør `node tests/stats.mjs` med PHP (PDO SQLite aktiveret) og Node.js 18+ tilgængeligt. Testen starter en lokal PHP-server på port 18089 og bruger en isoleret midlertidig database. Den kontrollerer migration af gammel total, tokenbinding, botfilter, deduplikering, otte-timers udløb, top 20-sortering, rate limiting og offentligt output. `PHP_BIN` og eventuelt `PHP_EXT_DIR` kan pege på en portabel PHP-installation.

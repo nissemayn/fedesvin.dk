@@ -27,7 +27,20 @@ function db(): PDO
     $pdo->exec('CREATE TABLE IF NOT EXISTS shortlinks (code TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_visitors (visitor_hash TEXT PRIMARY KEY, last_seen INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS subdomain_stats (subdomain TEXT PRIMARY KEY, visits INTEGER NOT NULL DEFAULT 0, first_counted_at INTEGER NOT NULL, last_counted_at INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS counter_subdomain_visitors (subdomain TEXT NOT NULL, visitor_hash TEXT NOT NULL, last_seen INTEGER NOT NULL, PRIMARY KEY (subdomain, visitor_hash))');
     return $pdo;
+}
+
+function requestSubdomain(): ?string
+{
+    $host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? DOMAIN)[0]);
+    $suffix = '.' . DOMAIN;
+    if (!str_ends_with($host, $suffix)) {
+        return null;
+    }
+    $label = substr($host, 0, -strlen($suffix));
+    return preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label) ? $label : null;
 }
 
 function e(string $value): string
@@ -119,7 +132,7 @@ function counterSecret(): string
 function createCounterToken(string $ip, string $userAgent): string
 {
     $payload = time() . '.' . bin2hex(random_bytes(16));
-    $signature = hash_hmac('sha256', $payload . '|' . $ip . '|' . $userAgent, counterSecret());
+    $signature = hash_hmac('sha256', $payload . '|' . $ip . '|' . $userAgent . '|' . (requestSubdomain() ?? ''), counterSecret());
     return $payload . '.' . $signature;
 }
 
@@ -135,7 +148,7 @@ function validCounterToken(string $token, string $ip, string $userAgent, string 
     }
 
     $payload = $parts[1] . '.' . $parts[2];
-    $expected = hash_hmac('sha256', $payload . '|' . $ip . '|' . $userAgent, $secret);
+    $expected = hash_hmac('sha256', $payload . '|' . $ip . '|' . $userAgent . '|' . (requestSubdomain() ?? ''), $secret);
     return hash_equals($expected, $parts[3]);
 }
 
@@ -219,8 +232,30 @@ function handleCounterPost(): never
                 $pdo->exec('UPDATE stats SET visits = visits + 1 WHERE id = 1');
             }
 
+            $subdomain = requestSubdomain();
+            if ($subdomain !== null) {
+                $visitor = $pdo->prepare('INSERT INTO counter_subdomain_visitors (subdomain, visitor_hash, last_seen)
+                    VALUES (:subdomain, :visitor_hash, :last_seen)
+                    ON CONFLICT(subdomain, visitor_hash) DO UPDATE SET last_seen = excluded.last_seen
+                    WHERE counter_subdomain_visitors.last_seen <= :cutoff');
+                $visitor->execute([
+                    ':subdomain' => $subdomain,
+                    ':visitor_hash' => $visitorHash,
+                    ':last_seen' => $now,
+                    ':cutoff' => $now - VISIT_WINDOW,
+                ]);
+                if ($visitor->rowCount() > 0) {
+                    $subdomainStats = $pdo->prepare('INSERT INTO subdomain_stats (subdomain, visits, first_counted_at, last_counted_at)
+                        VALUES (:subdomain, 1, :first_counted_at, :last_counted_at)
+                        ON CONFLICT(subdomain) DO UPDATE SET visits = subdomain_stats.visits + 1, last_counted_at = excluded.last_counted_at');
+                    $subdomainStats->execute([':subdomain' => $subdomain, ':first_counted_at' => $now, ':last_counted_at' => $now]);
+                }
+            }
+
             if (random_int(1, 100) === 1) {
                 $cleanup = $pdo->prepare('DELETE FROM counter_visitors WHERE last_seen <= :visitor_cutoff');
+                $cleanup->execute([':visitor_cutoff' => $now - VISIT_WINDOW]);
+                $cleanup = $pdo->prepare('DELETE FROM counter_subdomain_visitors WHERE last_seen <= :visitor_cutoff');
                 $cleanup->execute([':visitor_cutoff' => $now - VISIT_WINDOW]);
                 $cleanup = $pdo->prepare('DELETE FROM counter_rate_limits WHERE window_started <= :rate_cutoff');
                 $cleanup->execute([':rate_cutoff' => $now - 86400]);
@@ -287,7 +322,7 @@ function page(string $name, ?string $shareUrl = null): never
       <a class="again" href="https://<?= DOMAIN ?>">Lav et til <span aria-hidden="true">↗</span></a>
       <?php endif; ?>
     </section>
-    <footer><span>Gammeldags internet. Nye svin.</span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
   </main>
   <script src="/app.js" defer></script>
 </body>
@@ -297,6 +332,10 @@ function page(string $name, ?string $shareUrl = null): never
 }
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+if ($path === '/stats' || $path === '/stats/') {
+    require __DIR__ . '/stats.php';
+    exit;
+}
 if ($path === '/counter') {
     handleCounterPost();
 }
@@ -341,22 +380,18 @@ if (preg_match('~^/s/([a-z0-9-]{1,50})$~', $path, $match)) {
     exit;
 }
 
-$host = strtolower(explode(':', $_SERVER['HTTP_HOST'] ?? DOMAIN)[0]);
-$suffix = '.' . DOMAIN;
-if ($host !== DOMAIN && str_ends_with($host, $suffix)) {
-    $label = substr($host, 0, -strlen($suffix));
-    if (preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label)) {
-        $shareUrl = null;
-        $code = (string) ($_GET['s'] ?? '');
-        if ($code !== '') {
-            $stmt = db()->prepare('SELECT name FROM shortlinks WHERE code = :code');
-            $stmt->execute([':code' => $code]);
-            $linkName = $stmt->fetchColumn();
-            if ($linkName !== false && slugify((string) $linkName) === $label) {
-                $shareUrl = 'https://' . DOMAIN . '/s/' . rawurlencode($code);
-            }
+$label = requestSubdomain();
+if ($label !== null) {
+    $shareUrl = null;
+    $code = (string) ($_GET['s'] ?? '');
+    if ($code !== '') {
+        $stmt = db()->prepare('SELECT name FROM shortlinks WHERE code = :code');
+        $stmt->execute([':code' => $code]);
+        $linkName = $stmt->fetchColumn();
+        if ($linkName !== false && slugify((string) $linkName) === $label) {
+            $shareUrl = 'https://' . DOMAIN . '/s/' . rawurlencode($code);
         }
-        page(normalizeName(str_replace('-', ' ', $label)), $shareUrl);
     }
+    page(normalizeName(str_replace('-', ' ', $label)), $shareUrl);
 }
 page('');
