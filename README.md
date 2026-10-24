@@ -41,6 +41,14 @@ Subdomænestatistik starter ved denne opdatering; historiske besøg kan ikke for
 
 Den oprindelige PHP-side er bevaret i Git-branchen `legacy`.
 
+## Personlige beskeder, grise og retro
+
+Kortlinkformularen kan gemme en valgfri besked på højst 160 Unicode-tegn. Den eksisterende `shortlinks`-tabel migreres automatisk med `message TEXT NOT NULL DEFAULT ''`; gamle kortlinks virker fortsat. Beskeder behandles som ren tekst og HTML-escapes ved visning. Et kortlink viderestiller nu til `navn.fedesvin.dk/p/<kode>`, så beskeden og det oprindelige navn bevares ved genindlæsning. Gamle `?s=<kode>`-adresser understøttes fortsat. Beskeder er offentlige for dem, der har linket, og indgår også i linkets chat-preview og billedkort.
+
+Grisen har seks varianter. JavaScript vælger en ny ved hver sidevisning og bruger lokal browserlagring til at undgå samme variant to gange i træk på samme domæne. Uden lagringsadgang er valget stadig tilfældigt, men kan gentage sig. Tryk eller tastaturaktivering giver små reaktioner; hvert femte tryk udløser svinefest. Retro-mode gemmes lokalt pr. domæne og virker også på statistiksiden. Reduced-motion respekteres.
+
+`/share-image.png` laver et 1200 × 630 PNG-kort med PHP GD og DejaVu-skrifttyper fra Docker-imaget. `?code=<kortlinkkode>` medtager navn og besked; `?name=<navn>` understøtter direkte subdomæner. `download=1` sender billedet som download, og `v` kan vælge en af de seks grisevarianter. Formularresultatets download matcher den viste variant. Open Graph- og Twitter-metadata peger på PNG-billedet. Chat-apps kan cache deres previews; en allerede delt adresse kan derfor beholde sit gamle preview i en periode. Billeder, previews og almindelige HTML-downloads tæller ikke som besøg.
+
 ## Test
 
-Kør `node tests/stats.mjs` med PHP (PDO SQLite aktiveret) og Node.js 18+ tilgængeligt. Testen starter en lokal PHP-server på port 18089 og bruger en isoleret midlertidig database. Den kontrollerer migration af gammel total, tokenbinding, botfilter, deduplikering, otte-timers udløb, top 20-sortering, rate limiting og offentligt output. `PHP_BIN` og eventuelt `PHP_EXT_DIR` kan pege på en portabel PHP-installation.
+Kør `node tests/stats.mjs` med PHP (PDO SQLite og GD med FreeType aktiveret) og Node.js 18+ tilgængeligt. Testen starter en lokal PHP-server på port 18089 og bruger en isoleret midlertidig database. Den kontrollerer migration af gammel total og kortlinks, personlige beskeder/escaping, redirects, metadata, PNG-download, tokenbinding, botfilter, deduplikering, otte-timers udløb, top 20-sortering, rate limiting og offentligt output. `PHP_BIN` og eventuelt `PHP_EXT_DIR` kan pege på en portabel PHP-installation. `SHARE_FONT_REGULAR` og `SHARE_FONT_BOLD` kan pege på lokale TrueType-filer ved test uden for Docker.

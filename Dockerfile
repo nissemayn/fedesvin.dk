@@ -1,15 +1,16 @@
 FROM php:8.4-apache
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libsqlite3-dev \
-    && docker-php-ext-install pdo_sqlite \
+    && apt-get install -y --no-install-recommends libsqlite3-dev libpng-dev libfreetype6-dev fonts-dejavu-core \
+    && docker-php-ext-configure gd --with-freetype \
+    && docker-php-ext-install pdo_sqlite gd \
     && rm -rf /var/lib/apt/lists/* \
     && a2enmod rewrite headers \
     && mkdir -p /data \
     && chown www-data:www-data /data
 
 WORKDIR /var/www/html
-COPY index.php stats.php style.css details.css stats.css app.js robots.txt ./
+COPY index.php stats.php share-image.php style.css details.css stats.css extras.css app.js robots.txt ./
 
 RUN printf '%s\n' \
     '<Directory /var/www/html>' \

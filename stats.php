@@ -34,11 +34,12 @@ header('Content-Type: text/html; charset=utf-8');
   <meta name="description" content="De 20 mest besøgte subdomæner på Fedesvin.dk. En lille svinehitliste med store ambitioner.">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/details.css">
+  <link rel="stylesheet" href="/extras.css">
   <link rel="stylesheet" href="/stats.css">
 </head>
 <body>
   <main class="page-shell stats-shell">
-    <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><a class="top-note" href="https://<?= DOMAIN ?>">Lav et link ↗</a></header>
+    <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><button type="button" class="top-note retro-toggle" aria-pressed="false" hidden>Retro-mode: FRA</button></header>
     <section class="card stats-card" aria-labelledby="stats-title">
       <div class="sticker" aria-hidden="true">✳</div>
       <p class="eyebrow">DEN STORE SVINEHITLISTE</p>
@@ -72,6 +73,8 @@ header('Content-Type: text/html; charset=utf-8');
       </aside>
     </section>
     <footer><span>Gammeldags internet. Nye svin.</span><a href="https://<?= DOMAIN ?>">Tilbage til svinestien ↗</a><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
+  <script src="/app.js" defer></script>
 </body>
 </html>

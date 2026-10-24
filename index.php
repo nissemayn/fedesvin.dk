@@ -25,6 +25,21 @@ function db(): PDO
     $pdo->exec('CREATE TABLE IF NOT EXISTS stats (id INTEGER PRIMARY KEY CHECK (id = 1), visits INTEGER NOT NULL DEFAULT 0)');
     $pdo->exec('INSERT OR IGNORE INTO stats (id, visits) VALUES (1, 0)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS shortlinks (code TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)');
+    $columns = $pdo->query('PRAGMA table_info(shortlinks)')->fetchAll(PDO::FETCH_COLUMN, 1);
+    if (!in_array('message', $columns, true)) {
+        // Another request may migrate the same existing volume at the same time.
+        $pdo->exec('BEGIN IMMEDIATE');
+        try {
+            $columns = $pdo->query('PRAGMA table_info(shortlinks)')->fetchAll(PDO::FETCH_COLUMN, 1);
+            if (!in_array('message', $columns, true)) {
+                $pdo->exec("ALTER TABLE shortlinks ADD COLUMN message TEXT NOT NULL DEFAULT ''");
+            }
+            $pdo->exec('COMMIT');
+        } catch (Throwable $exception) {
+            $pdo->exec('ROLLBACK');
+            throw $exception;
+        }
+    }
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_visitors (visitor_hash TEXT PRIMARY KEY, last_seen INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS subdomain_stats (subdomain TEXT PRIMARY KEY, visits INTEGER NOT NULL DEFAULT 0, first_counted_at INTEGER NOT NULL, last_counted_at INTEGER NOT NULL)');
@@ -50,14 +65,40 @@ function e(string $value): string
 
 function normalizeName(string $value): string
 {
+    return normalizeText($value, 40);
+}
+
+function normalizeText(string $value, int $limit): string
+{
     $value = trim(preg_replace('/\s+/u', ' ', $value) ?? '');
+    $value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? '';
     $characters = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
-    return implode('', array_slice($characters ?: [], 0, 40));
+    return implode('', array_slice($characters ?: [], 0, $limit));
+}
+
+function displayName(string $name): string
+{
+    return ucfirst(preg_replace_callback('/^[æøå]/u', static fn (array $match): string => strtr($match[0], ['æ' => 'Æ', 'ø' => 'Ø', 'å' => 'Å']), $name) ?? $name);
+}
+
+function pigVariants(): array
+{
+    return ['classic', 'rose', 'mint', 'business', 'party', 'royal'];
+}
+
+function shortlink(string $code): ?array
+{
+    if (!preg_match('/^[a-z0-9-]{1,50}$/', $code)) {
+        return null;
+    }
+    $stmt = db()->prepare('SELECT name, message FROM shortlinks WHERE code = :code');
+    $stmt->execute([':code' => $code]);
+    return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
 
 function slugify(string $value): string
 {
-    $value = strtr($value, ['æ' => 'ae', 'ø' => 'oe', 'å' => 'aa']);
+    $value = strtr($value, ['æ' => 'ae', 'ø' => 'oe', 'å' => 'aa', 'Æ' => 'Ae', 'Ø' => 'Oe', 'Å' => 'Aa']);
     $value = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: '';
     $value = strtolower($value);
     $value = trim(preg_replace('/[^a-z0-9]+/', '-', $value) ?? '', '-');
@@ -280,15 +321,21 @@ function visitorCount(): int
     return (int) db()->query('SELECT visits FROM stats WHERE id = 1')->fetchColumn();
 }
 
-function page(string $name, ?string $shareUrl = null): never
+function page(string $name, ?string $shareUrl = null, string $personalMessage = '', ?string $code = null): never
 {
     $count = visitorCount();
     $ip = clientIp();
     $userAgent = requestUserAgent();
     $counterToken = createCounterToken($ip, $userAgent);
-    $greeting = $name !== '' ? 'Hej ' . ucfirst($name) . '!' : 'Hvem er dagens fedesvin?';
+    $name = displayName($name);
+    $greeting = $name !== '' ? 'Hej ' . $name . '!' : 'Hvem er dagens fedesvin?';
     $message = $name !== '' ? 'En eller anden synes åbenbart, at du er et fedt svin.' : 'Skriv et navn. Send linket.';
     $shareUrl ??= $name === '' ? '' : 'https://' . slugify($name) . '.' . DOMAIN;
+    $canonicalUrl = $shareUrl ?: 'https://' . DOMAIN . '/';
+    $imageParams = $code !== null ? ['code' => $code] : ($name !== '' ? ['name' => $name] : []);
+    $imageUrl = 'https://' . DOMAIN . '/share-image.png' . ($imageParams ? '?' . http_build_query($imageParams) : '');
+    $variant = pigVariants()[random_int(0, count(pigVariants()) - 1)];
+    $downloadUrl = $imageUrl . (str_contains($imageUrl, '?') ? '&' : '?') . 'download=1&v=' . $variant;
     http_response_code(200);
     header('Cache-Control: no-store, private');
     ?>
@@ -300,29 +347,53 @@ function page(string $name, ?string $shareUrl = null): never
   <meta name="theme-color" content="#f5c84c">
   <title><?= e($name === '' ? 'Fedesvin.dk' : 'Hej ' . $name . ' — Fedesvin.dk') ?></title>
   <meta name="description" content="<?= e($message) ?>">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Fedesvin.dk">
+  <meta property="og:locale" content="da_DK">
+  <meta property="og:title" content="<?= e($greeting) ?>">
+  <meta property="og:description" content="<?= e($personalMessage !== '' ? $personalMessage : $message) ?>">
+  <meta property="og:url" content="<?= e($canonicalUrl) ?>">
+  <meta property="og:image" content="<?= e($imageUrl) ?>">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="<?= e($greeting . ' ' . ($personalMessage ?: $message)) ?>">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="<?= e($greeting) ?>">
+  <meta name="twitter:description" content="<?= e($personalMessage !== '' ? $personalMessage : $message) ?>">
+  <meta name="twitter:image" content="<?= e($imageUrl) ?>">
   <meta name="counter-token" content="<?= e($counterToken) ?>">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/details.css">
+  <link rel="stylesheet" href="/extras.css">
 </head>
 <body>
   <main class="page-shell">
-    <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><span class="top-note">Et kompliment. På en måde.</span></header>
+    <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><button type="button" class="top-note retro-toggle" aria-pressed="false" hidden>Retro-mode: FRA</button></header>
     <section class="card <?= $name === '' ? 'card-home' : 'card-result' ?>">
       <div class="sticker" aria-hidden="true">✳</div>
+      <div class="retro-banner" aria-hidden="true"><span>*** VELKOMMEN TIL MIN SVINEHJEMMESIDE *** INGEN KAGE ER SIKKER ***</span></div>
       <h1><?= e($greeting) ?></h1>
       <p class="message"><?= e($message) ?></p>
-      <div class="mascot" aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="eyes"><i></i><i></i></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span></div>
+      <?php if ($personalMessage !== ''): ?><blockquote class="personal-message"><?= e($personalMessage) ?></blockquote><?php endif; ?>
+      <div class="mascot-stage">
+        <button type="button" class="mascot" data-pig="<?= e($variant) ?>" aria-label="Prik til grisen" title="Prik til grisen"><span aria-hidden="true"><span class="ear ear-left"></span><span class="ear ear-right"></span><span class="eyes"><i></i><i></i></span><span class="snout"><i></i><i></i></span><span class="smile"></span><span class="cheek cheek-left"></span><span class="cheek cheek-right"></span><span class="pig-accessory"></span></span></button>
+        <p class="pig-caption" aria-live="polite">Prik til grisen. Den bider næsten aldrig.</p>
+      </div>
       <?php if ($name === ''): ?>
       <form class="name-form" action="/shortlink" method="post">
         <label for="name">Hvem skal have æren?</label>
         <div class="input-row"><input id="name" name="name" maxlength="40" autocomplete="off" placeholder="Fx Morten" required><button type="submit">Lav et link <span aria-hidden="true">↗</span></button></div>
+        <details class="message-option"><summary>Tilføj en personlig besked</summary><label for="personal-message">En kærlig hilsen <span>(valgfrit)</span></label><textarea id="personal-message" name="message" maxlength="160" rows="2" placeholder="Du tog det sidste kage igen, Morten."></textarea><p>Op til 160 tegn. Beskeden vises for alle, der har linket.</p></details>
       </form>
       <?php else: ?>
       <div class="share-box"><span class="share-label">DEL JOKEN</span><div class="share-row"><a href="<?= e($shareUrl) ?>"><?= e(str_replace('https://', '', $shareUrl)) ?></a><button type="button" class="copy-button" data-copy="<?= e($shareUrl) ?>">Kopiér link</button></div><p class="copy-status" aria-live="polite"></p></div>
+      <a class="image-download" data-image-download href="<?= e($downloadUrl) ?>">Gem som billede ↓</a>
       <a class="again" href="https://<?= DOMAIN ?>">Lav et til <span aria-hidden="true">↗</span></a>
       <?php endif; ?>
     </section>
     <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
   <script src="/app.js" defer></script>
 </body>
@@ -332,6 +403,10 @@ function page(string $name, ?string $shareUrl = null): never
 }
 
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+if ($path === '/share-image.png') {
+    require __DIR__ . '/share-image.php';
+    exit;
+}
 if ($path === '/stats' || $path === '/stats/') {
     require __DIR__ . '/stats.php';
     exit;
@@ -353,7 +428,8 @@ if ($path === '/health') {
 }
 
 if ($path === '/shortlink' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = normalizeName((string) ($_POST['name'] ?? ''));
+    $name = normalizeName(is_string($_POST['name'] ?? null) ? $_POST['name'] : '');
+    $personalMessage = normalizeText(is_string($_POST['message'] ?? null) ? $_POST['message'] : '', 160);
     if ($name === '' || preg_match('/[\x00-\x1F\x7F]/u', $name)) {
         http_response_code(400);
         page('');
@@ -361,37 +437,42 @@ if ($path === '/shortlink' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = db();
     do {
         $code = bin2hex(random_bytes(6));
-        $stmt = $pdo->prepare('INSERT OR IGNORE INTO shortlinks (code, name) VALUES (:code, :name)');
-        $stmt->execute([':code' => $code, ':name' => $name]);
+        $stmt = $pdo->prepare('INSERT OR IGNORE INTO shortlinks (code, name, message) VALUES (:code, :name, :message)');
+        $stmt->execute([':code' => $code, ':name' => $name, ':message' => $personalMessage]);
     } while ($stmt->rowCount() === 0);
     header('Location: /s/' . rawurlencode($code), true, 303);
     exit;
 }
 
 if (preg_match('~^/s/([a-z0-9-]{1,50})$~', $path, $match)) {
-    $stmt = db()->prepare('SELECT name FROM shortlinks WHERE code = :code');
-    $stmt->execute([':code' => $match[1]]);
-    $name = $stmt->fetchColumn();
-    if ($name === false) {
+    $link = shortlink($match[1]);
+    if ($link === null) {
         http_response_code(404);
-        page('');
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'Det link findes ikke. Tilbage til https://' . DOMAIN;
+        exit;
     }
-    header('Location: https://' . slugify((string) $name) . '.' . DOMAIN . '/?s=' . rawurlencode($match[1]), true, 302);
+    header('Location: https://' . slugify($link['name']) . '.' . DOMAIN . '/p/' . rawurlencode($match[1]), true, 302);
     exit;
 }
 
 $label = requestSubdomain();
 if ($label !== null) {
     $shareUrl = null;
-    $code = (string) ($_GET['s'] ?? '');
+    $personalMessage = '';
+    $name = normalizeName(str_replace('-', ' ', $label));
+    $code = is_string($_GET['s'] ?? null) ? $_GET['s'] : '';
+    if (preg_match('~^/p/([a-z0-9-]{1,50})$~', $path, $match)) {
+        $code = $match[1];
+    }
     if ($code !== '') {
-        $stmt = db()->prepare('SELECT name FROM shortlinks WHERE code = :code');
-        $stmt->execute([':code' => $code]);
-        $linkName = $stmt->fetchColumn();
-        if ($linkName !== false && slugify((string) $linkName) === $label) {
+        $link = shortlink($code);
+        if ($link !== null && slugify($link['name']) === $label) {
             $shareUrl = 'https://' . DOMAIN . '/s/' . rawurlencode($code);
+            $personalMessage = $link['message'];
+            $name = $link['name'];
         }
     }
-    page(normalizeName(str_replace('-', ' ', $label)), $shareUrl);
+    page($name, $shareUrl, $personalMessage, $shareUrl !== null ? $code : null);
 }
 page('');
