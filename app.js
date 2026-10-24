@@ -14,6 +14,22 @@ const savePreference = (key, value) => {
   try { localStorage.setItem(key, value); } catch {}
 };
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+document.querySelectorAll('.retro-banner').forEach((banner) => {
+  const toggle = banner.querySelector('.marquee-toggle');
+  if (!toggle) return;
+  const setRunning = (running) => {
+    banner.dataset.running = String(running);
+    toggle.textContent = running ? 'Pause ❚❚' : 'Rul tekst ►';
+    toggle.setAttribute('aria-label', running ? 'Sæt rulleteksten på pause' : 'Start rulleteksten');
+    toggle.setAttribute('aria-pressed', String(running));
+  };
+  setRunning(!reducedMotion.matches);
+  toggle.hidden = false;
+  toggle.addEventListener('click', () => setRunning(banner.dataset.running !== 'true'));
+  reducedMotion.addEventListener('change', () => setRunning(!reducedMotion.matches));
+});
+
 const retroToggle = document.querySelector('.retro-toggle');
 const setRetro = (enabled) => {
   document.body.dataset.retro = String(enabled);
@@ -59,8 +75,8 @@ if (pig) {
     // Restart the same short animation on subsequent clicks.
     void pig.offsetWidth;
     pig.classList.add(party ? 'is-party' : 'is-poked');
-    resetAnimation = window.setTimeout(() => pig.classList.remove('is-poked', 'is-party'), 750);
-    if (party && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    resetAnimation = window.setTimeout(() => pig.classList.remove('is-poked', 'is-party'), 1150);
+    if (party && !reducedMotion.matches) {
       // Bound the number of elements even if somebody goes all-in on the snout.
       document.querySelectorAll('.pig-confetti').forEach((item) => item.remove());
       for (let i = 0; i < 10; i += 1) {

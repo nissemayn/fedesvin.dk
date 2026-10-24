@@ -64,7 +64,7 @@ try {
   assert.match(personalHtml, /class="personal-message"/);
   assert.match(personalHtml, /&lt;script&gt;alert\(&quot;øf&quot;\)&lt;\/script&gt;/);
   assert.doesNotMatch(personalHtml, /<script>alert/);
-  assert.match(personalHtml, new RegExp(`property="og:image" content="https://fedesvin.dk/share-image.png\\?code=${personalCode}"`));
+  assert.match(personalHtml, new RegExp(`property="og:image" content="https://fedesvin.dk/share-image.png\\?code=${personalCode}&amp;art=\\d+"`));
   assert.match(personalHtml, /name="twitter:card" content="summary_large_image"/);
   const otherDomain = await (await request(`/p/${personalCode}`, 'kasper.fedesvin.dk')).text();
   assert.doesNotMatch(otherDomain, /class="personal-message"/, 'Do not attach a message to a different person');

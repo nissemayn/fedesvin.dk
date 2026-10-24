@@ -333,6 +333,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
     $shareUrl ??= $name === '' ? '' : 'https://' . slugify($name) . '.' . DOMAIN;
     $canonicalUrl = $shareUrl ?: 'https://' . DOMAIN . '/';
     $imageParams = $code !== null ? ['code' => $code] : ($name !== '' ? ['name' => $name] : []);
+    $imageParams['art'] = (string) filemtime(__DIR__ . '/share-image.php');
     $imageUrl = 'https://' . DOMAIN . '/share-image.png' . ($imageParams ? '?' . http_build_query($imageParams) : '');
     $variant = pigVariants()[random_int(0, count(pigVariants()) - 1)];
     $downloadUrl = $imageUrl . (str_contains($imageUrl, '?') ? '&' : '?') . 'download=1&v=' . $variant;
@@ -372,7 +373,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
     <header class="topbar"><a class="wordmark" href="https://<?= DOMAIN ?>">FEDESVIN<span>.DK</span></a><button type="button" class="top-note retro-toggle" aria-pressed="false" hidden>Retro-mode: FRA</button></header>
     <section class="card <?= $name === '' ? 'card-home' : 'card-result' ?>">
       <div class="sticker" aria-hidden="true">✳</div>
-      <div class="retro-banner" aria-hidden="true"><span>*** VELKOMMEN TIL MIN SVINEHJEMMESIDE *** INGEN KAGE ER SIKKER ***</span></div>
+      <div class="retro-banner"><div class="retro-window" aria-hidden="true"><span class="retro-track"><span>*** VELKOMMEN TIL MIN SVINEHJEMMESIDE *** INGEN KAGE ER SIKKER ***</span><span>*** VELKOMMEN TIL MIN SVINEHJEMMESIDE *** INGEN KAGE ER SIKKER ***</span></span></div><button class="marquee-toggle" type="button" aria-label="Start rulleteksten" aria-pressed="false" hidden>Rul tekst ►</button></div>
       <h1><?= e($greeting) ?></h1>
       <p class="message"><?= e($message) ?></p>
       <?php if ($personalMessage !== ''): ?><blockquote class="personal-message"><?= e($personalMessage) ?></blockquote><?php endif; ?>

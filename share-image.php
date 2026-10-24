@@ -127,10 +127,13 @@ if ($variant === 'business') {
     imagefilledpolygon($image, [972, 365, 945, 378, 972, 391], $ink);
 } elseif ($variant === 'party') {
     imagefilledpolygon($image, [908, 184, 950, 93, 987, 184], $pink);
+    imagepolygon($image, [908, 184, 950, 93, 987, 184], $ink);
+    imagefilledellipse($image, 950, 93, 22, 22, $ink);
     imagefilledellipse($image, 950, 93, 18, 18, $yellow);
     imagefilledellipse($image, 951, 150, 12, 12, $paper);
 } elseif ($variant === 'royal') {
     imagefilledpolygon($image, [891, 178, 882, 125, 919, 148, 945, 114, 973, 148, 1009, 125, 1000, 178], $yellow);
+    imagepolygon($image, [891, 178, 882, 125, 919, 148, 945, 114, 973, 148, 1009, 125, 1000, 178], $ink);
 }
 imagettftext($image, 12, 0, 856, 445, $muted, $bold, 'ET KOMPLIMENT.');
 imagettftext($image, 12, 0, 867, 468, $muted, $bold, 'PÅ EN MÅDE.');
