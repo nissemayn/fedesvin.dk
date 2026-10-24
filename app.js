@@ -15,6 +15,29 @@ const savePreference = (key, value) => {
 };
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const deleteDialog = document.querySelector('[data-delete-dialog]');
+let pendingDeleteForm = null;
+if (deleteDialog) {
+  deleteDialog.addEventListener('close', () => {
+    const form = pendingDeleteForm;
+    pendingDeleteForm = null;
+    if (deleteDialog.returnValue !== 'confirm' || !form) return;
+    form.dataset.confirmed = 'true';
+    form.requestSubmit();
+  });
+  document.querySelectorAll('[data-delete-confirm]').forEach((form) => {
+    form.addEventListener('submit', (event) => {
+      if (form.dataset.confirmed === 'true') {
+        delete form.dataset.confirmed;
+        return;
+      }
+      event.preventDefault();
+      pendingDeleteForm = form;
+      deleteDialog.showModal();
+    });
+  });
+}
+
 document.querySelectorAll('.retro-banner').forEach((banner) => {
   const toggle = banner.querySelector('.marquee-toggle');
   if (!toggle) return;

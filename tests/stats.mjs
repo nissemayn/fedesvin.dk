@@ -115,10 +115,16 @@ try {
   assert.ok(sessionCookie, 'Admin page creates a CSRF session');
   const invalidAdminDelete = await request('/gaestebog/admin', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ csrf: 'invalid', id: guestEntryId, action: 'delete' }), headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
   assert.equal(invalidAdminDelete.status, 400, 'Admin mutations require a valid CSRF token');
+  const editedMessage = 'Rettet hilsen <script>alert("redigeret")</script>';
+  const adminUpdate = await request('/gaestebog/admin', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ csrf, id: guestEntryId, action: 'update', author: 'Redigeret gris', message: editedMessage }), headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
+  assert.equal(adminUpdate.status, 303, 'Admin can edit guestbook entries');
+  guestbookHtml = await (await request('/gaestebog')).text();
+  assert.match(guestbookHtml, /<strong>Redigeret gris<\/strong>/);
+  assert.match(guestbookHtml, /Rettet hilsen &lt;script&gt;alert\(&quot;redigeret&quot;\)&lt;\/script&gt;/, 'Edited content is HTML-escaped');
   const adminDelete = await request('/gaestebog/admin', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ csrf, id: guestEntryId, action: 'delete' }), headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
   assert.equal(adminDelete.status, 303);
   guestbookHtml = await (await request('/gaestebog')).text();
-  assert.doesNotMatch(guestbookHtml, /Hej gris! &lt;script&gt;/, 'Admin can delete guestbook entries');
+  assert.doesNotMatch(guestbookHtml, /Rettet hilsen &lt;script&gt;/, 'Admin can delete edited guestbook entries');
   assert.match(guestbookHtml, /Første øf i gæstebogen!/, 'Seeded first entry remains');
   const seedAdminPage = await request('/gaestebog/admin', 'fedesvin.dk', { headers: { Authorization: adminAuthorization, Cookie: sessionCookie } });
   const seedAdminHtml = await seedAdminPage.text();

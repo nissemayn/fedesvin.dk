@@ -83,6 +83,17 @@ if ($adminPage) {
         if (($_POST['action'] ?? '') === 'delete' && $id !== false) {
             $delete = $pdo->prepare('DELETE FROM guestbook_entries WHERE id = :id');
             $delete->execute([':id' => $id]);
+        } elseif (($_POST['action'] ?? '') === 'update' && $id !== false) {
+            $author = normalizeText(is_string($_POST['author'] ?? null) ? $_POST['author'] : '', 32);
+            $message = normalizeText(is_string($_POST['message'] ?? null) ? $_POST['message'] : '', 400);
+            if ($message === '') {
+                http_response_code(400);
+                header('Content-Type: text/plain; charset=utf-8');
+                echo 'Beskeden må ikke være tom.';
+                exit;
+            }
+            $update = $pdo->prepare('UPDATE guestbook_entries SET author = :author, message = :message WHERE id = :id');
+            $update->execute([':author' => $author !== '' ? $author : 'Anonymt svin', ':message' => $message, ':id' => $id]);
         }
         header('Location: /gaestebog/admin', true, 303);
         exit;
@@ -114,7 +125,7 @@ if ($adminPage) {
     <section class="card guestbook-card">
       <p class="eyebrow">KUN FOR SVINEPASSEREN</p>
       <h1>Moderér gæstebogen.</h1>
-      <p class="message">Her kan du slette indlæg, der har fået for meget sovs på sig.</p>
+      <p class="message">Ret navne og beskeder — eller slet indlæg, der har fået for meget sovs på sig.</p>
       <p class="guestbook-admin-back"><a href="/gaestebog">Tilbage til gæstebogen ↗</a></p>
       <div class="guestbook-entries guestbook-admin-entries">
         <?php if ($entries === []): ?>
@@ -122,8 +133,17 @@ if ($adminPage) {
         <?php else: foreach ($entries as $entry): ?>
         <article class="guestbook-entry">
           <header><strong><?= e($entry['author']) ?></strong><time><?= e(guestbookDate((int) $entry['created_at'])) ?></time></header>
-          <p><?= e($entry['message']) ?></p>
-          <form method="post" action="/gaestebog/admin" onsubmit="return confirm('Slette dette indlæg?')">
+          <form class="guestbook-admin-edit" method="post" action="/gaestebog/admin">
+            <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
+            <input type="hidden" name="id" value="<?= (int) $entry['id'] ?>">
+            <input type="hidden" name="action" value="update">
+            <label for="author-<?= (int) $entry['id'] ?>">Navn</label>
+            <input id="author-<?= (int) $entry['id'] ?>" name="author" maxlength="32" value="<?= e($entry['author']) ?>" required>
+            <label for="message-<?= (int) $entry['id'] ?>">Besked</label>
+            <textarea id="message-<?= (int) $entry['id'] ?>" name="message" maxlength="400" rows="3" required><?= e($entry['message']) ?></textarea>
+            <button type="submit">Gem ændringer</button>
+          </form>
+          <form class="guestbook-admin-delete-form" method="post" action="/gaestebog/admin" data-delete-confirm>
             <input type="hidden" name="csrf" value="<?= e($csrf) ?>">
             <input type="hidden" name="id" value="<?= (int) $entry['id'] ?>">
             <input type="hidden" name="action" value="delete">
@@ -133,6 +153,13 @@ if ($adminPage) {
         <?php endforeach; endif; ?>
       </div>
     </section>
+    <dialog class="guestbook-delete-dialog" data-delete-dialog aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-description">
+      <form method="dialog">
+        <h2 id="delete-dialog-title">Slette indlægget?</h2>
+        <p id="delete-dialog-description">Det kan ikke fortrydes.</p>
+        <div><button value="cancel">Behold indlæg</button><button value="confirm" class="guestbook-delete">Slet indlæg</button></div>
+      </form>
+    </dialog>
     <footer><a href="/gaestebog">Gæstebogen ↗</a><a href="https://<?= DOMAIN ?>">Tilbage til svinestien ↗</a></footer>
     <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
   </main>

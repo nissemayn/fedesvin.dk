@@ -47,18 +47,20 @@ function db(): PDO
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT NOT NULL, message TEXT NOT NULL, created_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-    $pdo->exec('BEGIN IMMEDIATE');
-    try {
-        $seedMarker = $pdo->prepare("INSERT OR IGNORE INTO guestbook_meta (key, value) VALUES ('welcome_seeded', '1')");
-        $seedMarker->execute();
-        if ($seedMarker->rowCount() === 1) {
-            $welcome = $pdo->prepare('INSERT OR IGNORE INTO guestbook_entries (id, author, message, created_at) VALUES (1, :author, :message, :created_at)');
-            $welcome->execute([':author' => 'Codex', ':message' => 'Første øf i gæstebogen! Den er åben, Netscape er installeret, og ingen har spildt sovs på tastaturet endnu.', ':created_at' => time()]);
+    if (!$pdo->query("SELECT 1 FROM guestbook_meta WHERE key = 'welcome_seeded'")->fetchColumn()) {
+        $pdo->exec('BEGIN IMMEDIATE');
+        try {
+            $seedMarker = $pdo->prepare("INSERT OR IGNORE INTO guestbook_meta (key, value) VALUES ('welcome_seeded', '1')");
+            $seedMarker->execute();
+            if ($seedMarker->rowCount() === 1) {
+                $welcome = $pdo->prepare('INSERT OR IGNORE INTO guestbook_entries (id, author, message, created_at) VALUES (1, :author, :message, :created_at)');
+                $welcome->execute([':author' => 'Codex', ':message' => 'Første øf i gæstebogen! Den er åben, Netscape er installeret, og ingen har spildt sovs på tastaturet endnu.', ':created_at' => time()]);
+            }
+            $pdo->exec('COMMIT');
+        } catch (Throwable $exception) {
+            $pdo->exec('ROLLBACK');
+            throw $exception;
         }
-        $pdo->exec('COMMIT');
-    } catch (Throwable $exception) {
-        $pdo->exec('ROLLBACK');
-        throw $exception;
     }
     return $pdo;
 }

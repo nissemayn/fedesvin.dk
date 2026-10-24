@@ -42,7 +42,7 @@ Subdomænestatistik starter ved denne opdatering; historiske besøg kan ikke for
 
 `/gaestebog` viser indlæg med det samme. Hvert opslag har et valgfrit navn og en besked på op til 400 tegn. Honeypot, IP-bundet signeret formular-token og en grænse på tre opslag pr. IP pr. time dæmper spam; kun HMAC-hashes af IP-adresser gemmes i `guestbook_rate_limits`. Gæstebogen starter automatisk med ét velkomstindlæg.
 
-`/gaestebog/admin` bruger HTTP Basic Auth. Sæt `GUESTBOOK_ADMIN_PASSWORD` på mindst 8 tegn i Portainer Stack environment variables før brug; brugernavnet er `admin`, medmindre `GUESTBOOK_ADMIN_USER` er sat. Adminsiden har CSRF-beskyttede sletteknapper. Der findes ingen offentlig slettefunktion. Nye opslag bliver synlige med det samme, så moderering her betyder at kunne fjerne uønskede indlæg.
+`/gaestebog/admin` bruger HTTP Basic Auth. Sæt `GUESTBOOK_ADMIN_PASSWORD` på mindst 8 tegn i Portainer Stack environment variables før brug; brugernavnet er `admin`, medmindre `GUESTBOOK_ADMIN_USER` er sat. Admin kan rette navn/besked eller slette indlæg; ændringer er CSRF-beskyttede, og sletning kræver bekræftelse i en dialog. Der findes ingen offentlig redigerings- eller slettefunktion. Nye opslag bliver synlige med det samme. Velkomstindlægget oprettes kun én gang og kommer ikke tilbage, hvis det slettes.
 
 ## Ældre udgave
 
