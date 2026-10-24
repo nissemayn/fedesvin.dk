@@ -34,7 +34,7 @@ header('Content-Type: text/html; charset=utf-8');
   <meta name="description" content="De 20 mest besøgte subdomæner på Fedesvin.dk. En lille svinehitliste med store ambitioner.">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/details.css">
-  <link rel="stylesheet" href="/extras.css">
+  <link rel="stylesheet" href="/extras.css?v=<?= filemtime(__DIR__ . '/extras.css') ?>">
   <link rel="stylesheet" href="/stats.css">
 </head>
 <body>
@@ -75,6 +75,6 @@ header('Content-Type: text/html; charset=utf-8');
     <footer><span>Gammeldags internet. Nye svin.</span><a href="https://<?= DOMAIN ?>">Tilbage til svinestien ↗</a><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
     <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>
 </body>
 </html>

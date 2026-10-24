@@ -365,7 +365,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
   <meta name="counter-token" content="<?= e($counterToken) ?>">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/details.css">
-  <link rel="stylesheet" href="/extras.css">
+  <link rel="stylesheet" href="/extras.css?v=<?= filemtime(__DIR__ . '/extras.css') ?>">
 </head>
 <body>
   <main class="page-shell">
@@ -395,7 +395,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
     <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
     <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>
 </body>
 </html>
     <?php
