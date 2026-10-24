@@ -30,6 +30,23 @@ document.querySelectorAll('.retro-banner').forEach((banner) => {
 });
 
 const retroToggle = document.querySelector('.retro-toggle');
+const retroPreferenceKey = 'fedesvin-retro';
+const usesSharedRetroCookie = window.location.hostname === 'fedesvin.dk' || window.location.hostname.endsWith('.fedesvin.dk');
+const readRetroPreference = () => {
+  if (usesSharedRetroCookie) {
+    const sharedCookie = document.cookie.split('; ').find((cookie) => cookie.startsWith(`${retroPreferenceKey}=`));
+    if (sharedCookie) return sharedCookie.slice(retroPreferenceKey.length + 1);
+  }
+  const legacyPreference = readPreference(retroPreferenceKey);
+  if (legacyPreference !== null && usesSharedRetroCookie) saveRetroPreference(legacyPreference);
+  return legacyPreference;
+};
+const saveRetroPreference = (value) => {
+  savePreference(retroPreferenceKey, value);
+  if (usesSharedRetroCookie) {
+    document.cookie = `${retroPreferenceKey}=${value}; Domain=.fedesvin.dk; Path=/; Max-Age=31536000; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`;
+  }
+};
 const setRetro = (enabled) => {
   document.body.dataset.retro = String(enabled);
   if (retroToggle) {
@@ -37,13 +54,13 @@ const setRetro = (enabled) => {
     retroToggle.textContent = `Retro-mode: ${enabled ? 'TIL' : 'FRA'}`;
   }
 };
-setRetro(readPreference('fedesvin-retro') === 'true');
+setRetro(readRetroPreference() === 'true');
 if (retroToggle) {
   retroToggle.hidden = false;
   retroToggle.addEventListener('click', () => {
     const enabled = document.body.dataset.retro !== 'true';
     setRetro(enabled);
-    savePreference('fedesvin-retro', String(enabled));
+    saveRetroPreference(String(enabled));
   });
 }
 
