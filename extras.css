@@ -1,11 +1,10 @@
 .retro-toggle{font-family:inherit;font-weight:700;cursor:pointer;color:var(--ink)}
 .retro-toggle[hidden]{display:none}
-.mascot-stage{position:relative;margin:0 auto}
+.mascot-stage{position:relative;margin:0 auto;padding-top:40px;display:grid;grid-template-rows:108px 32px;row-gap:8px}
 button.mascot{display:block;padding:0;appearance:none;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent;transition:background .2s}
 button.mascot:focus-visible{outline:3px solid var(--blue);outline-offset:8px}
-.mascot-stage .mascot{margin-bottom:8px}
-.mascot-stage .mascot[data-pig="party"],.mascot-stage .mascot[data-pig="royal"]{margin-top:38px}
-.pig-caption{min-height:16px;margin:0;font-size:11px;font-weight:600;color:var(--muted)}
+.mascot-stage .mascot{margin:0 auto}
+.pig-caption{margin:0;font-size:11px;line-height:16px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center}
 .mascot[data-pig="rose"],.mascot[data-pig="rose"] .ear{background:#f3a5b7}
 .mascot[data-pig="rose"]{box-shadow:inset 0 -12px #de829c}
 .mascot[data-pig="mint"],.mascot[data-pig="mint"] .ear{background:#a8d5b5}
@@ -39,7 +38,6 @@ button.mascot:focus-visible{outline:3px solid var(--blue);outline-offset:8px}
 .mascot[data-pig="pirate"] .eyes:after{content:"";position:absolute;left:-15px;top:1px;width:87px;border-top:3px solid #242322;transform:rotate(-10deg)}
 .mascot[data-pig="pirate"] .pig-accessory{position:absolute;left:18px;top:-23px;width:88px;height:34px;background:#242322;clip-path:polygon(0 100%,4% 24%,29% 46%,50% 0,71% 46%,96% 24%,100% 100%);z-index:3}
 .mascot[data-pig="pirate"] .pig-accessory:after{content:"☠";display:block;position:absolute;left:34px;top:11px;color:#fffdf7;font:16px/1 system-ui,sans-serif}
-.mascot-stage .mascot[data-pig="goth"],.mascot-stage .mascot[data-pig="pirate"],.mascot-stage .mascot[data-pig="space"]{margin-top:34px}
 .mascot[data-pig="space"],.mascot[data-pig="space"] .ear{background:#9fbee0}
 .mascot[data-pig="space"]{box-shadow:inset 0 -12px #789cc5}
 .mascot[data-pig="space"] .pig-accessory{position:absolute;inset:-10px -11px -9px;border:6px solid #fffdf7;border-radius:48%;box-shadow:0 0 0 2px #242322,inset 0 0 0 2px #242322;z-index:3}
@@ -83,5 +81,5 @@ body[data-retro="true"] .retro-badges{display:flex;justify-content:center;flex-w
 .retro-badges span{border:3px outset #bbb;background:#ddd;color:#000;font:700 9px monospace;padding:4px 6px}
 body[data-retro="true"] .input-row button,body[data-retro="true"] .copy-button,body[data-retro="true"] .retro-toggle{border:3px outset #ccc;border-radius:0;box-shadow:none;background:#c0c0c0;color:#000}
 @keyframes retro-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-@media(max-width:520px){.mascot-stage .mascot{margin-bottom:6px}.pig-caption{font-size:10px}.personal-message{font-size:14px;padding:9px 12px}.image-download+.again{margin-left:16px}.name-form{margin-top:14px}.card{margin-top:auto;margin-bottom:auto}.message-option{margin-top:10px}}
+@media(max-width:520px){.pig-caption{font-size:10px}.personal-message{font-size:14px;padding:9px 12px}.image-download+.again{margin-left:16px}.name-form{margin-top:14px}.card{margin-top:auto;margin-bottom:auto}.message-option{margin-top:10px}}
 @media(prefers-reduced-motion:reduce){.mascot{animation:none!important}.mascot.is-poked,.mascot.is-party{animation:pig-small-hop .35s ease-out!important}.pig-confetti{transform:translate(calc(-50% + var(--confetti-x)),var(--confetti-y));animation:pig-confetti-soft 1.4s ease-out forwards!important}}
