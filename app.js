@@ -38,6 +38,32 @@ if (deleteDialog) {
   });
 }
 
+const guestbookForm = document.querySelector('.guestbook-form');
+if (guestbookForm) {
+  const browserCheck = guestbookForm.querySelector('[name="js_check"]');
+  const notice = guestbookForm.querySelector('.guestbook-notice');
+  if (browserCheck) {
+    const markBrowserReady = () => {
+      if (document.visibilityState === 'visible') {
+        browserCheck.value = 'ready';
+      } else {
+        const onVisible = () => {
+          if (document.visibilityState !== 'visible') return;
+          browserCheck.value = 'ready';
+          document.removeEventListener('visibilitychange', onVisible);
+        };
+        document.addEventListener('visibilitychange', onVisible);
+      }
+    };
+    window.setTimeout(markBrowserReady, 2500);
+    guestbookForm.addEventListener('submit', (event) => {
+      if (browserCheck.value === 'ready') return;
+      event.preventDefault();
+      if (notice) notice.textContent = 'Lige et øjeblik — formularen er ved at blive klar.';
+    });
+  }
+}
+
 document.querySelectorAll('.retro-banner').forEach((banner) => {
   const toggle = banner.querySelector('.marquee-toggle');
   if (!toggle) return;

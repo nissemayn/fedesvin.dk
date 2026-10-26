@@ -100,7 +100,13 @@ try {
   assert.match(guestbookHtml, /NETSCAPE 4\.0/);
   const guestbookToken = guestbookHtml.match(/name="token" value="([^"]+)"/)[1];
   const guestMessage = 'Hej gris! <script>alert("øf")</script>';
-  const guestPost = await request('/gaestebog', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ token: guestbookToken, author: 'testsvin', message: guestMessage, company: '' }) });
+  assert.match(guestbookHtml, /name="js_check" value=""/, 'Guestbook includes a JavaScript check');
+  const noJavaScriptPost = await request('/gaestebog', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ token: guestbookToken, author: 'bot', message: 'spam', company: '' }) });
+  assert.equal(noJavaScriptPost.headers.get('location'), '/gaestebog?status=browser-check#indlaeg', 'Posts without the JavaScript check are rejected');
+  const tooFastPost = await request('/gaestebog', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ token: guestbookToken, js_check: 'ready', author: 'bot', message: 'spam', company: '' }) });
+  assert.equal(tooFastPost.headers.get('location'), '/gaestebog?status=too-fast#indlaeg', 'Immediate submissions are rejected');
+  await new Promise((done) => setTimeout(done, 2200));
+  const guestPost = await request('/gaestebog', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ token: guestbookToken, js_check: 'ready', author: 'testsvin', message: guestMessage, company: '' }) });
   assert.equal(guestPost.status, 303);
   guestbookHtml = await (await request('/gaestebog')).text();
   assert.match(guestbookHtml, /Hej gris! &lt;script&gt;alert\(&quot;øf&quot;\)&lt;\/script&gt;/);

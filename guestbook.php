@@ -175,6 +175,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     if (!validGuestbookToken($token)) {
         guestbookRedirect('expired');
     }
+    if (($_POST['js_check'] ?? '') !== 'ready') {
+        guestbookRedirect('browser-check');
+    }
+    $tokenIssuedAt = (int) explode('.', $token, 2)[0];
+    if (time() - $tokenIssuedAt < 2) {
+        guestbookRedirect('too-fast');
+    }
     if (is_string($_POST['company'] ?? null) && $_POST['company'] !== '') {
         guestbookRedirect('posted');
     }
@@ -237,6 +244,8 @@ $notice = match ($_GET['status'] ?? '') {
     'slow-down' => 'Rolig, lille gris — prøv igen om en times tid.',
     'empty' => 'Skriv lige en hilsen først.',
     'expired' => 'Formularen nåede at blive for gammel. Prøv igen.',
+    'browser-check' => 'Formularen kunne ikke bekræfte, at JavaScript kører. Genindlæs siden og prøv igen.',
+    'too-fast' => 'Det gik stærkt! Vent et øjeblik, og prøv igen.',
     default => '',
 };
 header('Cache-Control: no-store, private');
@@ -266,6 +275,7 @@ header('Content-Type: text/html; charset=utf-8');
       <p class="message">Efterlad en hilsen, en dårlig joke eller en kærlig fornærmelse. Som i gamle dage — bare med lidt mere flæsk.</p>
       <form class="guestbook-form" action="/gaestebog" method="post">
         <input type="hidden" name="token" value="<?= e($guestbookToken) ?>">
+        <input type="hidden" name="js_check" value="">
         <div class="guestbook-honeypot" aria-hidden="true"><label for="company">Lad dette felt være tomt</label><input id="company" name="company" tabindex="-1" autocomplete="off"></div>
         <label for="author">Dit navn <span>(valgfrit)</span></label>
         <input id="author" name="author" maxlength="32" autocomplete="nickname" placeholder="Anonymt svin">

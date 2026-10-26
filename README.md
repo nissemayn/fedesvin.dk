@@ -40,7 +40,7 @@ Subdomænestatistik starter ved denne opdatering; historiske besøg kan ikke for
 
 ## Gæstebog og moderation
 
-`/gaestebog` viser indlæg med det samme. Hvert opslag har et valgfrit navn og en besked på op til 400 tegn. Honeypot, IP-bundet signeret formular-token og en grænse på tre opslag pr. IP pr. time dæmper spam; kun HMAC-hashes af IP-adresser gemmes i `guestbook_rate_limits`. Gæstebogen starter automatisk med ét velkomstindlæg.
+`/gaestebog` viser indlæg med det samme. Hvert opslag har et valgfrit navn og en besked på op til 400 tegn. En honeypot, JavaScript-kontrol, mindst to sekunders formularalder, IP-bundet signeret formular-token og en grænse på tre opslag pr. IP pr. time dæmper simpel botspam; kun HMAC-hashes af IP-adresser gemmes i `guestbook_rate_limits`. Kontrollerne er ikke CAPTCHA og kan omgås af målrettede bots. Gæstebogen starter automatisk med ét velkomstindlæg.
 
 `/gaestebog/admin` bruger HTTP Basic Auth. Sæt `GUESTBOOK_ADMIN_PASSWORD` på mindst 8 tegn i Portainer Stack environment variables før brug; brugernavnet er `admin`, medmindre `GUESTBOOK_ADMIN_USER` er sat. Admin kan rette navn/besked eller slette indlæg; ændringer er CSRF-beskyttede, og sletning kræver bekræftelse i en dialog. Der findes ingen offentlig redigerings- eller slettefunktion. Nye opslag bliver synlige med det samme. Velkomstindlægget oprettes kun én gang og kommer ikke tilbage, hvis det slettes.
 
