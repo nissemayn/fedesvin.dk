@@ -99,6 +99,12 @@ try {
   assert.equal((await request('/share-image.png?code=000000000000')).status, 404);
   assert.equal((await request('/s/000000000000')).status, 404);
   for (const asset of ['/extras.css', '/app.js']) assert.equal((await request(asset)).status, 200);
+  for (const asset of ['/assets/fonts/comic-neue-regular.woff2', '/assets/fonts/comic-neue-bold.woff2', '/assets/fonts/ComicNeue-OFL.txt']) {
+    assert.equal((await request(asset)).status, 200, `Retro font asset ${asset} is served`);
+  }
+  const retroCss = await (await request('/extras.css')).text();
+  assert.match(retroCss, /Comic Neue/);
+  assert.match(retroCss, /comic-neue-regular\.woff2/);
   let html = await (await request('/stats')).text();
   assert.match(html, /Hitlisten venter/);
   assert.match(html, /<dd>123<\/dd>/);
