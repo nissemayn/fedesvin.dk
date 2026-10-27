@@ -59,6 +59,8 @@ function db(): PDO
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT NOT NULL, message TEXT NOT NULL, created_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_guestbook_rate_limits_window_started ON guestbook_rate_limits(window_started)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS admin_login_attempts (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, attempts INTEGER NOT NULL)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_admin_login_attempts_window_started ON admin_login_attempts(window_started)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
     if (!$pdo->query("SELECT 1 FROM guestbook_meta WHERE key = 'welcome_seeded'")->fetchColumn()) {
         $pdo->exec('BEGIN IMMEDIATE');
@@ -533,6 +535,9 @@ if (preg_match('~^/s/([a-z0-9-]{1,50})$~', $path, $match)) {
 
 $label = requestSubdomain();
 if ($label !== null) {
+    if (isSubdomainHidden($label)) {
+        page('');
+    }
     $shareUrl = null;
     $personalMessage = '';
     $pigVariant = null;

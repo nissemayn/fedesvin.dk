@@ -5,6 +5,11 @@
 .subdomain-moderation{margin:18px 0 0;padding:16px;background:#f6f0df;border:1px dashed #b7a985;border-radius:5px;text-align:left}
 .subdomain-moderation h2{margin:0;font-size:20px}
 .subdomain-moderation>p{font-size:12px;line-height:1.5;color:#655e50}
+.hide-subdomain-form{display:grid;gap:6px;margin-top:16px}
+.hide-subdomain-form label{font-size:12px;font-weight:700}
+.hide-subdomain-form>div{display:flex;gap:9px}
+.hide-subdomain-form input{min-width:0;flex:1;border:1px solid #b7a985;border-radius:4px;padding:9px;background:#fffdf7;font:14px system-ui,sans-serif}
+.hide-subdomain-form button{background:#f3b5a9}
 .subdomain-moderation ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:8px}
 .subdomain-moderation li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;background:#fffdf7;border:1px solid #d9cfb3;border-radius:4px}
 .subdomain-moderation li span{min-width:0;overflow-wrap:anywhere}
@@ -12,6 +17,16 @@
 .subdomain-moderation button{min-height:34px;border:2px solid var(--ink);border-radius:4px;padding:0 9px;background:#f3b5a9;color:var(--ink);font:700 11px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
 .subdomain-moderation-restore button{background:#c8e5c2}
 .hidden-subdomain-list{margin-top:26px}
+.shortlink-moderation{margin:26px 0 0;padding:16px;background:#f6f0df;border:1px dashed #b7a985;border-radius:5px;text-align:left}
+.shortlink-moderation h2{margin:0;font-size:20px}
+.shortlink-moderation>p{font-size:12px;line-height:1.5;color:#655e50}
+.shortlink-moderation ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:9px}
+.shortlink-moderation li{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px;background:#fffdf7;border:1px solid #d9cfb3;border-radius:4px}
+.shortlink-details{min-width:0;display:grid;gap:4px;overflow-wrap:anywhere}
+.shortlink-details>a{font-size:12px;font-weight:700}
+.shortlink-details>p{margin:2px 0;font-size:12px;line-height:1.45;white-space:pre-wrap}
+.shortlink-details>small{font-size:10px;color:var(--muted)}
+.shortlink-moderation button{min-height:34px;border:2px solid var(--ink);border-radius:4px;padding:0 9px;background:#f3b5a9;color:var(--ink);font:700 11px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
 .stats-admin-dialog{width:min(440px,calc(100% - 32px));border:3px solid var(--ink);border-radius:8px;padding:24px;background:#fffdf7;color:var(--ink);box-shadow:8px 8px 0 #0005}
 .stats-admin-dialog::backdrop{background:#17120ccc}
 .stats-admin-dialog h2{margin:0 0 8px;font-size:22px}
@@ -20,4 +35,4 @@
 .stats-admin-dialog button{min-height:42px;border:2px solid var(--ink);border-radius:5px;padding:0 12px;background:#eee8d7;color:var(--ink);font:800 12px system-ui,sans-serif;cursor:pointer}
 .stats-admin-dialog button.stats-admin-confirm{background:#f3b5a9}
 .stats-admin-shell footer{gap:12px;flex-wrap:wrap}
-@media(max-width:560px){.stats-admin-card{margin:18px 0;padding:34px 16px 24px}.subdomain-moderation li{align-items:flex-start;flex-direction:column}.subdomain-moderation li form,.subdomain-moderation button{width:100%}.stats-admin-shell footer{justify-content:center;text-align:center}}
+@media(max-width:560px){.stats-admin-card{margin:18px 0;padding:34px 16px 24px}.subdomain-moderation li,.shortlink-moderation li{align-items:flex-start;flex-direction:column}.subdomain-moderation li form,.subdomain-moderation button,.shortlink-moderation li form,.shortlink-moderation button,.hide-subdomain-form>div button{width:100%}.hide-subdomain-form>div{flex-direction:column}.stats-admin-shell footer{justify-content:center;text-align:center}}
