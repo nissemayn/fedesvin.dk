@@ -4,6 +4,8 @@
 .mascot{transform-origin:50% 90%;animation:pig-wiggle 3.6s ease-in-out infinite}
 @keyframes pig-wiggle{0%,100%{transform:rotate(-1.5deg) scale(1)}50%{transform:rotate(1.5deg) scale(1.035)}}
 .page-shell{min-height:100svh}
+.name-form-note{margin:8px 0 0;color:var(--muted);font-size:11px;line-height:1.45}
+.name-form-note a{font-weight:700}
 footer{flex-wrap:wrap}
 footer .vibe-note{flex:0 0 100%;text-align:center;font-size:11px;font-weight:500;font-variant-numeric:normal;opacity:.58}
 @media(max-width:520px){

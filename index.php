@@ -438,6 +438,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
         <label for="name">Hvem skal have æren?</label>
         <div class="input-row"><input id="name" name="name" maxlength="40" autocomplete="off" placeholder="Fx Morten" required><button type="submit">Lav et link <span aria-hidden="true">↗</span></button></div>
         <details class="message-option"><summary>Tilføj en personlig besked</summary><label for="personal-message">En kærlig hilsen <span>(valgfrit)</span></label><textarea id="personal-message" name="message" maxlength="160" rows="2" placeholder="Du tog det sidste kage igen, Morten."></textarea><p>Op til 160 tegn. Beskeden vises for alle, der har linket.</p></details>
+        <p class="name-form-note">Navnet vises i linkets adresse og på siden. <a href="/privatliv">Læs om privatliv</a>.</p>
       </form>
       <?php else: ?>
       <div class="share-box"><span class="share-label">DEL JOKEN</span><div class="share-row"><a href="<?= e($shareUrl) ?>"><?= e(str_replace('https://', '', $shareUrl)) ?></a><button type="button" class="copy-button" data-copy="<?= e($shareUrl) ?>">Kopiér link</button></div><p class="copy-status" aria-live="polite"></p></div>
