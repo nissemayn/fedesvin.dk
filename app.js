@@ -13,6 +13,7 @@ const readPreference = (key) => {
 const savePreference = (key, value) => {
   try { localStorage.setItem(key, value); } catch {}
 };
+try { localStorage.removeItem('fedesvin-last-pig'); } catch {}
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const deleteDialog = document.querySelector('[data-delete-dialog]');
@@ -121,15 +122,7 @@ if (pig) {
     pigAudio.currentTime = 0;
     void pigAudio.play().catch(() => {});
   };
-  const variants = ['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'];
-  const previous = readPreference('fedesvin-last-pig');
-  const choices = variants.filter((variant) => variant !== previous);
-  const savedVariant = pig.dataset.pig;
-  const variant = pig.dataset.pigFixed === 'true' && variants.includes(savedVariant)
-    ? savedVariant
-    : choices[Math.floor(Math.random() * choices.length)];
-  pig.dataset.pig = variant;
-  savePreference('fedesvin-last-pig', variant);
+  const variant = pig.dataset.pig;
   document.querySelectorAll('[data-image-download]').forEach((link) => {
     const url = new URL(link.href);
     url.searchParams.set('v', variant);
