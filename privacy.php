@@ -34,8 +34,8 @@ header('Content-Type: text/html; charset=utf-8');
         <p>Dataansvarlig er ejeren af Fedesvin.dk. Kontakt: <a href="mailto:nissemayn@fedesvin.dk">nissemayn@fedesvin.dk</a>.</p>
         <h2>Besøgstælleren</h2>
         <p>Efter tre sekunder med siden synlig sender browseren et tællekald. For at undgå gentælling gemmer vi en HMAC-hash af IP-adresse og browserens User-Agent i SQLite. Den rå IP gemmes ikke i tællerens database. Hashen bruges til deduplikering i otte timer; oprydningen sker løbende, så hash-rækker kan ligge længere end otte timer. Rate-limit-hashes for tælleren og gæstebogen ryddes også løbende og kan ligge længere end et døgn. Vi gemmer samlede besøgstal og subdomænernes hitlistetal uden en fast slettefrist; subdomænenavne vises offentligt.</p>
-        <h2>Serverlog</h2>
-        <p>Zoraxy-logfiler opbevares i syv dage. De kan indeholde IP-adresse, tidspunkt, sti og oplysninger fra browserens forespørgsel. Loggene bruges til drift og fejlsøgning og slettes derefter automatisk.</p>
+        <h2>Webserver-logfiler</h2>
+        <p>Webserver-logfiler opbevares i syv dage. De kan indeholde IP-adresse, tidspunkt, sti og oplysninger fra browserens forespørgsel. Loggene bruges til drift og fejlsøgning og slettes derefter automatisk.</p>
         <h2>Gæstebog og kortlinks</h2>
         <p>Navne og hilsner, der sendes til gæstebogen, vises offentligt og opbevares, indtil de slettes. Navn og eventuel personlig besked på et kortlink gemmes, så linket virker, indtil linket slettes.</p>
         <h2>Cookies og lokale indstillinger</h2>
