@@ -50,6 +50,11 @@ try {
   }
   assert.ok(ready, errors);
   assert.equal((await request('/s/abcdef123456')).headers.get('location'), 'https://morten.fedesvin.dk/p/abcdef123456', 'Legacy shortlinks survive migration');
+  const legacyPageHtml = await (await request('/p/abcdef123456', 'morten.fedesvin.dk')).text();
+  const legacyPig = legacyPageHtml.match(/class="mascot" data-pig="([a-z]+)"/)[1];
+  assert.ok(['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'].includes(legacyPig), 'Legacy links receive a valid migrated pig variant');
+  const legacyReloadHtml = await (await request('/p/abcdef123456', 'morten.fedesvin.dk')).text();
+  assert.match(legacyReloadHtml, new RegExp(`class="mascot" data-pig="${legacyPig}"`), 'Migrated pig variant stays fixed across reloads');
   const greeting = 'Du tog det sidste kage igen! <script>alert("øf")</script>';
   const created = await request('/shortlink', 'fedesvin.dk', { method: 'POST', body: new URLSearchParams({ name: 'øjvind', message: greeting }) });
   assert.equal(created.status, 303);
@@ -64,7 +69,11 @@ try {
   assert.match(personalHtml, /class="personal-message"/);
   assert.match(personalHtml, /&lt;script&gt;alert\(&quot;øf&quot;\)&lt;\/script&gt;/);
   assert.doesNotMatch(personalHtml, /<script>alert/);
-  assert.match(personalHtml, new RegExp(`property="og:image" content="https://fedesvin.dk/share-image.png\\?code=${personalCode}&amp;art=\\d+"`));
+  const personalPig = personalHtml.match(/class="mascot" data-pig="([a-z]+)"/)[1];
+  assert.ok(['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'].includes(personalPig));
+  assert.match(personalHtml, new RegExp(`property="og:image" content="https://fedesvin.dk/share-image.png\\?code=${personalCode}&amp;art=\\d+&amp;v=${personalPig}"`), 'Share preview image uses the link pig variant');
+  const personalReloadHtml = await (await request(`/p/${personalCode}`, 'oejvind.fedesvin.dk')).text();
+  assert.match(personalReloadHtml, new RegExp(`class="mascot" data-pig="${personalPig}"`), 'New shortlink keeps its pig variant across reloads');
   assert.match(personalHtml, /name="twitter:card" content="summary_large_image"/);
   assert.doesNotMatch(personalHtml, /data-pig-sound/, 'Pig sound toggle is removed');
   const otherDomain = await (await request(`/p/${personalCode}`, 'kasper.fedesvin.dk')).text();

@@ -26,13 +26,21 @@ function db(): PDO
     $pdo->exec('INSERT OR IGNORE INTO stats (id, visits) VALUES (1, 0)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS shortlinks (code TEXT PRIMARY KEY, name TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)');
     $columns = $pdo->query('PRAGMA table_info(shortlinks)')->fetchAll(PDO::FETCH_COLUMN, 1);
-    if (!in_array('message', $columns, true)) {
+    if (!in_array('message', $columns, true) || !in_array('pig_variant', $columns, true)) {
         // Another request may migrate the same existing volume at the same time.
         $pdo->exec('BEGIN IMMEDIATE');
         try {
             $columns = $pdo->query('PRAGMA table_info(shortlinks)')->fetchAll(PDO::FETCH_COLUMN, 1);
             if (!in_array('message', $columns, true)) {
                 $pdo->exec("ALTER TABLE shortlinks ADD COLUMN message TEXT NOT NULL DEFAULT ''");
+            }
+            if (!in_array('pig_variant', $columns, true)) {
+                $pdo->exec("ALTER TABLE shortlinks ADD COLUMN pig_variant TEXT NOT NULL DEFAULT 'classic'");
+                $variantCases = [];
+                foreach (pigVariants() as $index => $variant) {
+                    $variantCases[] = "WHEN {$index} THEN '{$variant}'";
+                }
+                $pdo->exec('UPDATE shortlinks SET pig_variant = CASE abs(random() % ' . count($variantCases) . ') ' . implode(' ', $variantCases) . ' END');
             }
             $pdo->exec('COMMIT');
         } catch (Throwable $exception) {
@@ -109,7 +117,7 @@ function shortlink(string $code): ?array
     if (!preg_match('/^[a-z0-9-]{1,50}$/', $code)) {
         return null;
     }
-    $stmt = db()->prepare('SELECT name, message FROM shortlinks WHERE code = :code');
+    $stmt = db()->prepare('SELECT name, message, pig_variant FROM shortlinks WHERE code = :code');
     $stmt->execute([':code' => $code]);
     return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
 }
@@ -361,7 +369,7 @@ function visitorCount(): int
     return (int) db()->query('SELECT visits FROM stats WHERE id = 1')->fetchColumn();
 }
 
-function page(string $name, ?string $shareUrl = null, string $personalMessage = '', ?string $code = null): never
+function page(string $name, ?string $shareUrl = null, string $personalMessage = '', ?string $code = null, ?string $pigVariant = null): never
 {
     $count = visitorCount();
     $ip = clientIp();
@@ -372,10 +380,11 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
     $message = $name !== '' ? 'En eller anden synes åbenbart, at du er et fedt svin.' : 'Skriv et navn. Send linket.';
     $shareUrl ??= $name === '' ? '' : 'https://' . slugify($name) . '.' . DOMAIN;
     $canonicalUrl = $shareUrl ?: 'https://' . DOMAIN . '/';
+    $variant = $pigVariant !== null && in_array($pigVariant, pigVariants(), true) ? $pigVariant : pigVariants()[random_int(0, count(pigVariants()) - 1)];
     $imageParams = $code !== null ? ['code' => $code] : ($name !== '' ? ['name' => $name] : []);
     $imageParams['art'] = (string) filemtime(__DIR__ . '/share-image.php');
+    $imageParams['v'] = $variant;
     $imageUrl = 'https://' . DOMAIN . '/share-image.png' . ($imageParams ? '?' . http_build_query($imageParams) : '');
-    $variant = pigVariants()[random_int(0, count(pigVariants()) - 1)];
     $downloadUrl = $imageUrl . (str_contains($imageUrl, '?') ? '&' : '?') . 'download=1&v=' . $variant;
     http_response_code(200);
     header('Cache-Control: no-store, private');
@@ -483,8 +492,8 @@ if ($path === '/shortlink' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = db();
     do {
         $code = bin2hex(random_bytes(6));
-        $stmt = $pdo->prepare('INSERT OR IGNORE INTO shortlinks (code, name, message) VALUES (:code, :name, :message)');
-        $stmt->execute([':code' => $code, ':name' => $name, ':message' => $personalMessage]);
+        $stmt = $pdo->prepare('INSERT OR IGNORE INTO shortlinks (code, name, message, pig_variant) VALUES (:code, :name, :message, :pig_variant)');
+        $stmt->execute([':code' => $code, ':name' => $name, ':message' => $personalMessage, ':pig_variant' => pigVariants()[random_int(0, count(pigVariants()) - 1)]]);
     } while ($stmt->rowCount() === 0);
     header('Location: /s/' . rawurlencode($code), true, 303);
     exit;
@@ -506,6 +515,7 @@ $label = requestSubdomain();
 if ($label !== null) {
     $shareUrl = null;
     $personalMessage = '';
+    $pigVariant = null;
     $name = normalizeName(str_replace('-', ' ', $label));
     $code = is_string($_GET['s'] ?? null) ? $_GET['s'] : '';
     if (preg_match('~^/p/([a-z0-9-]{1,50})$~', $path, $match)) {
@@ -517,8 +527,9 @@ if ($label !== null) {
             $shareUrl = 'https://' . DOMAIN . '/s/' . rawurlencode($code);
             $personalMessage = $link['message'];
             $name = $link['name'];
+            $pigVariant = $link['pig_variant'];
         }
     }
-    page($name, $shareUrl, $personalMessage, $shareUrl !== null ? $code : null);
+    page($name, $shareUrl, $personalMessage, $shareUrl !== null ? $code : null, $pigVariant);
 }
 page('');
