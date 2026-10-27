@@ -53,6 +53,7 @@ function db(): PDO
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_visitors_last_seen ON counter_visitors(last_seen)');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_rate_limits_window_started ON counter_rate_limits(window_started)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS subdomain_stats (subdomain TEXT PRIMARY KEY, visits INTEGER NOT NULL DEFAULT 0, first_counted_at INTEGER NOT NULL, last_counted_at INTEGER NOT NULL)');
+    $pdo->exec('CREATE TABLE IF NOT EXISTS hidden_subdomains (subdomain TEXT PRIMARY KEY, hidden_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_subdomain_visitors (subdomain TEXT NOT NULL, visitor_hash TEXT NOT NULL, last_seen INTEGER NOT NULL, PRIMARY KEY (subdomain, visitor_hash))');
     $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_subdomain_visitors_last_seen ON counter_subdomain_visitors(last_seen)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT NOT NULL, message TEXT NOT NULL, created_at INTEGER NOT NULL)');
@@ -86,6 +87,13 @@ function requestSubdomain(): ?string
     }
     $label = substr($host, 0, -strlen($suffix));
     return preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $label) ? $label : null;
+}
+
+function isSubdomainHidden(string $subdomain): bool
+{
+    $statement = db()->prepare('SELECT 1 FROM hidden_subdomains WHERE subdomain = :subdomain');
+    $statement->execute([':subdomain' => $subdomain]);
+    return $statement->fetchColumn() !== false;
 }
 
 function e(string $value): string
@@ -334,7 +342,7 @@ function handleCounterPost(): never
             }
 
             $subdomain = requestSubdomain();
-            if ($subdomain !== null) {
+            if ($subdomain !== null && !isSubdomainHidden($subdomain)) {
                 $visitor = $pdo->prepare('INSERT INTO counter_subdomain_visitors (subdomain, visitor_hash, last_seen)
                     VALUES (:subdomain, :visitor_hash, :last_seen)
                     ON CONFLICT(subdomain, visitor_hash) DO UPDATE SET last_seen = excluded.last_seen

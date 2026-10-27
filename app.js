@@ -34,6 +34,10 @@ if (deleteDialog) {
       }
       event.preventDefault();
       pendingDeleteForm = form;
+      deleteDialog.querySelector('#delete-dialog-title').textContent = form.dataset.confirmTitle || 'Slette indlægget?';
+      deleteDialog.querySelector('#delete-dialog-description').textContent = form.dataset.confirmDescription || 'Det kan ikke fortrydes.';
+      deleteDialog.querySelector('[data-dialog-cancel]').textContent = form.dataset.confirmCancel || 'Behold indlæg';
+      deleteDialog.querySelector('[data-dialog-confirm]').textContent = form.dataset.confirmSubmit || 'Slet indlæg';
       deleteDialog.showModal();
     });
   });

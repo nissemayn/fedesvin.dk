@@ -7,7 +7,7 @@ En kærlig, lille kollegadriller inspireret af dansk internetnostalgi. Projektet
 - Personlige sider på wildcard-subdomæner og tilfældige kortlinks i formatet `/s/<kode>`. Kortlinks viderestiller til personens subdomæne.
 - Valgfri personlig besked på kortlinks samt et delingsbillede med Open Graph-preview. Hvert kortlink beholder sin egen gris ved genindlæsning og i previewet.
 - Offentlig statistik over besøg og populære subdomæner.
-- Gæstebog med server-side moderation, enkle botværn og CSRF-beskyttelse.
+- Gæstebog med server-side moderation, enkle botværn og CSRF-beskyttelse; admin kan også skjule subdomæner fra hitlisten.
 - Privatlivsside med information om tæller, gæstebog, kortlinks, cookies og serverlogs.
 - Retro-mode med rulletekst, badges og en lokalt indlejret comic-style font.
 
