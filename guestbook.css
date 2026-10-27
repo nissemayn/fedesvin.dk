@@ -26,16 +26,6 @@
 .guestbook-admin-link,.guestbook-admin-back{margin:18px 0 0;font-size:11px;text-align:center}
 .guestbook-admin-link a{color:var(--muted)}
 .guestbook-admin-entries{margin-top:20px}
-.subdomain-moderation{margin:22px 0 28px;padding:16px;background:#f6f0df;border:1px dashed #b7a985;border-radius:5px;text-align:left}
-.subdomain-moderation h2{margin:0;font-size:20px}
-.subdomain-moderation h3{margin:20px 0 8px;font-size:15px}
-.subdomain-moderation>p{font-size:12px;line-height:1.5;color:#655e50}
-.subdomain-moderation ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:8px}
-.subdomain-moderation li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;background:#fffdf7;border:1px solid #d9cfb3;border-radius:4px}
-.subdomain-moderation li span{min-width:0;overflow-wrap:anywhere}
-.subdomain-moderation small{display:block;color:var(--muted);font-size:10px}
-.subdomain-moderation button{min-height:34px;border:2px solid var(--ink);border-radius:4px;padding:0 9px;background:#f3b5a9;color:var(--ink);font:700 11px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
-.subdomain-moderation-restore button{background:#c8e5c2!important}
 .guestbook-admin-entries .guestbook-entry form{margin-top:10px}
 .guestbook-admin-edit{display:grid;gap:6px}
 .guestbook-admin-edit label{font-size:11px;font-weight:800}

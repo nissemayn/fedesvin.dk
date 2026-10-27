@@ -474,6 +474,10 @@ if ($path === '/stats' || $path === '/stats/') {
     require __DIR__ . '/stats.php';
     exit;
 }
+if ($path === '/stats/admin' || $path === '/stats/admin/') {
+    require __DIR__ . '/stats-admin.php';
+    exit;
+}
 if ($path === '/privatliv' || $path === '/privatliv/') {
     require __DIR__ . '/privacy.php';
     exit;

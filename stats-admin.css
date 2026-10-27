@@ -1,0 +1,23 @@
+.stats-admin-shell{max-width:900px}
+.stats-admin-card{margin:26px 0 30px;padding:40px clamp(18px,5vw,44px) 32px;text-align:left}
+.stats-admin-card h1{font-size:clamp(36px,7vw,58px)}
+.stats-admin-card>.message{margin:12px 0 22px}
+.subdomain-moderation{margin:18px 0 0;padding:16px;background:#f6f0df;border:1px dashed #b7a985;border-radius:5px;text-align:left}
+.subdomain-moderation h2{margin:0;font-size:20px}
+.subdomain-moderation>p{font-size:12px;line-height:1.5;color:#655e50}
+.subdomain-moderation ul{list-style:none;padding:0;margin:12px 0 0;display:grid;gap:8px}
+.subdomain-moderation li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 10px;background:#fffdf7;border:1px solid #d9cfb3;border-radius:4px}
+.subdomain-moderation li span{min-width:0;overflow-wrap:anywhere}
+.subdomain-moderation small{display:block;color:var(--muted);font-size:10px}
+.subdomain-moderation button{min-height:34px;border:2px solid var(--ink);border-radius:4px;padding:0 9px;background:#f3b5a9;color:var(--ink);font:700 11px system-ui,sans-serif;cursor:pointer;white-space:nowrap}
+.subdomain-moderation-restore button{background:#c8e5c2}
+.hidden-subdomain-list{margin-top:26px}
+.stats-admin-dialog{width:min(440px,calc(100% - 32px));border:3px solid var(--ink);border-radius:8px;padding:24px;background:#fffdf7;color:var(--ink);box-shadow:8px 8px 0 #0005}
+.stats-admin-dialog::backdrop{background:#17120ccc}
+.stats-admin-dialog h2{margin:0 0 8px;font-size:22px}
+.stats-admin-dialog p{margin:0 0 20px;font-size:14px}
+.stats-admin-dialog form>div{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px}
+.stats-admin-dialog button{min-height:42px;border:2px solid var(--ink);border-radius:5px;padding:0 12px;background:#eee8d7;color:var(--ink);font:800 12px system-ui,sans-serif;cursor:pointer}
+.stats-admin-dialog button.stats-admin-confirm{background:#f3b5a9}
+.stats-admin-shell footer{gap:12px;flex-wrap:wrap}
+@media(max-width:560px){.stats-admin-card{margin:18px 0;padding:34px 16px 24px}.subdomain-moderation li{align-items:flex-start;flex-direction:column}.subdomain-moderation li form,.subdomain-moderation button{width:100%}.stats-admin-shell footer{justify-content:center;text-align:center}}

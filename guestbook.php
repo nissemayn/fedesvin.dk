@@ -6,58 +6,12 @@ if (!isset($path) || !function_exists('db')) {
     exit;
 }
 
+require_once __DIR__ . '/admin_auth.php';
+
 function guestbookRedirect(string $status): never
 {
     header('Location: /gaestebog?status=' . rawurlencode($status) . '#indlaeg', true, 303);
     exit;
-}
-
-function guestbookAdminCredentials(): array
-{
-    $username = (string) ($_SERVER['PHP_AUTH_USER'] ?? '');
-    $password = (string) ($_SERVER['PHP_AUTH_PW'] ?? '');
-    if ($username !== '') {
-        return [$username, $password];
-    }
-    $authorization = (string) ($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
-    if (preg_match('/^Basic\s+(.+)$/i', $authorization, $match)) {
-        $decoded = base64_decode($match[1], true);
-        if (is_string($decoded) && str_contains($decoded, ':')) {
-            return explode(':', $decoded, 2);
-        }
-    }
-    return ['', ''];
-}
-
-function guestbookRequireAdmin(): void
-{
-    $expectedPassword = getenv('GUESTBOOK_ADMIN_PASSWORD');
-    if (!is_string($expectedPassword) || strlen($expectedPassword) < 8) {
-        http_response_code(503);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'Administration kræver GUESTBOOK_ADMIN_PASSWORD på mindst 8 tegn i Portainer.';
-        exit;
-    }
-
-    [$username, $password] = guestbookAdminCredentials();
-    $expectedUsername = getenv('GUESTBOOK_ADMIN_USER') ?: 'admin';
-    if (!hash_equals($expectedUsername, $username) || !hash_equals($expectedPassword, $password)) {
-        header('WWW-Authenticate: Basic realm="Fedesvin gæstebog", charset="UTF-8"');
-        header('Cache-Control: no-store');
-        http_response_code(401);
-        header('Content-Type: text/plain; charset=utf-8');
-        echo 'Administrator-login kræves.';
-        exit;
-    }
-
-    session_name('fedesvin_guestbook_admin');
-    session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Strict']);
-    session_start();
-    if (empty($_SESSION['guestbook_admin'])) {
-        session_regenerate_id(true);
-        $_SESSION['guestbook_admin'] = true;
-    }
-    $_SESSION['guestbook_csrf'] ??= bin2hex(random_bytes(32));
 }
 
 function guestbookDate(int $timestamp): string
@@ -69,7 +23,7 @@ function guestbookDate(int $timestamp): string
 
 $adminPage = $path === '/gaestebog/admin';
 if ($adminPage) {
-    guestbookRequireAdmin();
+    requireSiteAdmin();
     $pdo = db();
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $submittedToken = is_string($_POST['csrf'] ?? null) ? $_POST['csrf'] : '';
@@ -80,29 +34,6 @@ if ($adminPage) {
             exit;
         }
         $action = is_string($_POST['action'] ?? null) ? $_POST['action'] : '';
-        $subdomain = is_string($_POST['subdomain'] ?? null) ? strtolower($_POST['subdomain']) : '';
-        if (in_array($action, ['hide-subdomain', 'show-subdomain'], true) && preg_match('/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/', $subdomain)) {
-            $pdo->exec('BEGIN IMMEDIATE TRANSACTION');
-            try {
-                if ($action === 'hide-subdomain') {
-                    $hide = $pdo->prepare('INSERT INTO hidden_subdomains (subdomain, hidden_at) VALUES (:subdomain, :hidden_at) ON CONFLICT(subdomain) DO NOTHING');
-                    $hide->execute([':subdomain' => $subdomain, ':hidden_at' => time()]);
-                    $removeStats = $pdo->prepare('DELETE FROM subdomain_stats WHERE subdomain = :subdomain');
-                    $removeStats->execute([':subdomain' => $subdomain]);
-                    $removeVisitors = $pdo->prepare('DELETE FROM counter_subdomain_visitors WHERE subdomain = :subdomain');
-                    $removeVisitors->execute([':subdomain' => $subdomain]);
-                } else {
-                    $show = $pdo->prepare('DELETE FROM hidden_subdomains WHERE subdomain = :subdomain');
-                    $show->execute([':subdomain' => $subdomain]);
-                }
-                $pdo->exec('COMMIT');
-            } catch (Throwable $exception) {
-                $pdo->exec('ROLLBACK');
-                throw $exception;
-            }
-            header('Location: /gaestebog/admin#hitliste', true, 303);
-            exit;
-        }
         $id = filter_var($_POST['id'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($action === 'delete' && $id !== false) {
             $delete = $pdo->prepare('DELETE FROM guestbook_entries WHERE id = :id');
@@ -128,8 +59,6 @@ if ($adminPage) {
         exit;
     }
     $entries = $pdo->query('SELECT id, author, message, created_at FROM guestbook_entries ORDER BY created_at DESC, id DESC LIMIT 200')->fetchAll(PDO::FETCH_ASSOC);
-    $subdomains = $pdo->query('SELECT subdomain, visits FROM subdomain_stats ORDER BY visits DESC, subdomain ASC')->fetchAll(PDO::FETCH_ASSOC);
-    $hiddenSubdomains = $pdo->query('SELECT subdomain, hidden_at FROM hidden_subdomains ORDER BY hidden_at DESC')->fetchAll(PDO::FETCH_ASSOC);
     $csrf = (string) $_SESSION['guestbook_csrf'];
     header('Cache-Control: no-store');
     header('Content-Type: text/html; charset=utf-8');
@@ -153,25 +82,6 @@ if ($adminPage) {
       <h1>Moderér gæstebogen.</h1>
       <p class="message">Ret navne og beskeder — eller slet indlæg, der har fået for meget sovs på sig.</p>
       <p class="guestbook-admin-back"><a href="/gaestebog">Tilbage til gæstebogen ↗</a></p>
-      <section class="subdomain-moderation" id="hitliste" aria-labelledby="subdomain-moderation-title">
-        <h2 id="subdomain-moderation-title">Moderér hitlisten</h2>
-        <p>Skjul et subdomæne fra hitlisten. Dets hitlistedata slettes, og subdomænebesøg tælles ikke igen, før du viser det. Når det vises igen, starter historikken fra nul.</p>
-        <?php if ($subdomains === []): ?><p>Ingen synlige subdomæner på hitlisten.</p><?php else: ?>
-        <ul>
-          <?php foreach ($subdomains as $subdomain): ?>
-          <li><span><strong><?= e(ucfirst($subdomain['subdomain'])) ?>.<?= DOMAIN ?></strong><small><?= number_format((int) $subdomain['visits'], 0, ',', '.') ?> besøg</small></span><form method="post" action="/gaestebog/admin" data-delete-confirm data-confirm-title="Skjule subdomænet?" data-confirm-description="Hitlistedata og gemte besøgshashes slettes. Hvis du viser det igen, starter historikken fra nul." data-confirm-cancel="Behold subdomænet" data-confirm-submit="Skjul subdomæne"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="hide-subdomain"><input type="hidden" name="subdomain" value="<?= e($subdomain['subdomain']) ?>"><button type="submit">Skjul fra hitlisten</button></form></li>
-          <?php endforeach; ?>
-        </ul>
-        <?php endif; ?>
-        <?php if ($hiddenSubdomains !== []): ?>
-        <h3>Skjulte subdomæner</h3>
-        <ul>
-          <?php foreach ($hiddenSubdomains as $subdomain): ?>
-          <li><span><strong><?= e(ucfirst($subdomain['subdomain'])) ?>.<?= DOMAIN ?></strong><small>Skjult <?= e(guestbookDate((int) $subdomain['hidden_at'])) ?></small></span><form class="subdomain-moderation-restore" method="post" action="/gaestebog/admin"><input type="hidden" name="csrf" value="<?= e($csrf) ?>"><input type="hidden" name="action" value="show-subdomain"><input type="hidden" name="subdomain" value="<?= e($subdomain['subdomain']) ?>"><button type="submit">Vis igen</button></form></li>
-          <?php endforeach; ?>
-        </ul>
-        <?php endif; ?>
-      </section>
       <div class="guestbook-entries guestbook-admin-entries">
         <?php if ($entries === []): ?>
         <p>Gæstebogen er tom. Grisen venter i spænding.</p>
@@ -337,7 +247,7 @@ header('Content-Type: text/html; charset=utf-8');
         </article>
         <?php endforeach; ?>
       </div>
-      <p class="guestbook-admin-link"><a href="/gaestebog/admin">Administrér gæstebog og hitliste</a></p>
+      <p class="guestbook-admin-link"><a href="/gaestebog/admin">Moderér gæstebogen</a></p>
     </section>
     <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a> · <a href="https://<?= DOMAIN ?>/privatliv">Privatliv</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
     <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
