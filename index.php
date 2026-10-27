@@ -442,7 +442,7 @@ function page(string $name, ?string $shareUrl = null, string $personalMessage = 
       <a class="again" href="https://<?= DOMAIN ?>">Lav et til <span aria-hidden="true">↗</span></a>
       <?php endif; ?>
     </section>
-    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/gaestebog">Gæstebog</a> · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/gaestebog">Gæstebog</a> · <a href="https://<?= DOMAIN ?>/stats">Statistik</a> · <a href="https://<?= DOMAIN ?>/privatliv">Privatliv</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
     <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
     <p class="retro-badges" aria-hidden="true"><span>BEST VIEWED IN IE 6</span><span>UNDER CONSTRUCTION</span><span>100% SVIN • 0% FLASH</span></p>
   </main>
@@ -460,6 +460,10 @@ if ($path === '/share-image.png') {
 }
 if ($path === '/stats' || $path === '/stats/') {
     require __DIR__ . '/stats.php';
+    exit;
+}
+if ($path === '/privatliv' || $path === '/privatliv/') {
+    require __DIR__ . '/privacy.php';
     exit;
 }
 if ($path === '/gaestebog' || $path === '/gaestebog/' || $path === '/gaestebog/admin') {

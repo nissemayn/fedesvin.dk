@@ -281,6 +281,7 @@ header('Content-Type: text/html; charset=utf-8');
         <input id="author" name="author" maxlength="32" autocomplete="nickname" placeholder="Anonymt svin">
         <label for="guestbook-message">Din hilsen</label>
         <textarea id="guestbook-message" name="message" maxlength="400" rows="4" required placeholder="Øf øf, verden!"></textarea>
+        <p class="guestbook-privacy-note">Dit navn og din hilsen bliver synlige for alle. <a href="/privatliv">Læs om privatliv og sletning</a>.</p>
         <button type="submit">Skriv i gæstebogen <span aria-hidden="true">✎</span></button>
         <p class="guestbook-notice" aria-live="polite"><?= e($notice) ?></p>
       </form>
@@ -295,7 +296,7 @@ header('Content-Type: text/html; charset=utf-8');
       </div>
       <p class="guestbook-admin-link"><a href="/gaestebog/admin">Moderér gæstebogen</a></p>
     </section>
-    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
+    <footer><span>Gammeldags internet. Nye svin. · <a href="https://<?= DOMAIN ?>/stats">Statistik</a> · <a href="https://<?= DOMAIN ?>/privatliv">Privatliv</a></span><span><span data-visit-count><?= number_format($count, 0, ',', '.') ?></span> kærlige besøg</span><span class="vibe-note">Siden her er 100% vibecoded fordi jeg selv er et fedt svin!</span></footer>
     <p class="geo-badge" aria-label="Bedst set med Netscape og en kærlig gris"><span>BEDST SET MED</span><strong>NETSCAPE 4.0</strong><span>SVINEUDGAVEN • 2003</span></p>
   </main>
   <script src="/app.js?v=<?= filemtime(__DIR__ . '/app.js') ?>" defer></script>
