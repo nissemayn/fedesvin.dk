@@ -50,10 +50,14 @@ function db(): PDO
     }
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_visitors (visitor_hash TEXT PRIMARY KEY, last_seen INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_visitors_last_seen ON counter_visitors(last_seen)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_rate_limits_window_started ON counter_rate_limits(window_started)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS subdomain_stats (subdomain TEXT PRIMARY KEY, visits INTEGER NOT NULL DEFAULT 0, first_counted_at INTEGER NOT NULL, last_counted_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS counter_subdomain_visitors (subdomain TEXT NOT NULL, visitor_hash TEXT NOT NULL, last_seen INTEGER NOT NULL, PRIMARY KEY (subdomain, visitor_hash))');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_counter_subdomain_visitors_last_seen ON counter_subdomain_visitors(last_seen)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_entries (id INTEGER PRIMARY KEY AUTOINCREMENT, author TEXT NOT NULL, message TEXT NOT NULL, created_at INTEGER NOT NULL)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_rate_limits (ip_hash TEXT PRIMARY KEY, window_started INTEGER NOT NULL, requests INTEGER NOT NULL)');
+    $pdo->exec('CREATE INDEX IF NOT EXISTS idx_guestbook_rate_limits_window_started ON guestbook_rate_limits(window_started)');
     $pdo->exec('CREATE TABLE IF NOT EXISTS guestbook_meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
     if (!$pdo->query("SELECT 1 FROM guestbook_meta WHERE key = 'welcome_seeded'")->fetchColumn()) {
         $pdo->exec('BEGIN IMMEDIATE');
@@ -278,6 +282,14 @@ function handleCounterPost(): never
         $pdo->exec('BEGIN IMMEDIATE TRANSACTION');
 
         try {
+            // Purge expired pseudonymous identifiers before refreshing the current IP's row.
+            $cleanup = $pdo->prepare('DELETE FROM counter_visitors WHERE last_seen <= :cutoff');
+            $cleanup->execute([':cutoff' => $now - VISIT_WINDOW]);
+            $cleanup = $pdo->prepare('DELETE FROM counter_subdomain_visitors WHERE last_seen <= :cutoff');
+            $cleanup->execute([':cutoff' => $now - VISIT_WINDOW]);
+            $cleanup = $pdo->prepare('DELETE FROM counter_rate_limits WHERE window_started <= :cutoff');
+            $cleanup->execute([':cutoff' => $now - 86400]);
+
             $rateLimit = $pdo->prepare('INSERT INTO counter_rate_limits (ip_hash, window_started, requests)
                 VALUES (:ip_hash, :request_time, 1)
                 ON CONFLICT(ip_hash) DO UPDATE SET
@@ -339,15 +351,6 @@ function handleCounterPost(): never
                         ON CONFLICT(subdomain) DO UPDATE SET visits = subdomain_stats.visits + 1, last_counted_at = excluded.last_counted_at');
                     $subdomainStats->execute([':subdomain' => $subdomain, ':first_counted_at' => $now, ':last_counted_at' => $now]);
                 }
-            }
-
-            if (random_int(1, 100) === 1) {
-                $cleanup = $pdo->prepare('DELETE FROM counter_visitors WHERE last_seen <= :visitor_cutoff');
-                $cleanup->execute([':visitor_cutoff' => $now - VISIT_WINDOW]);
-                $cleanup = $pdo->prepare('DELETE FROM counter_subdomain_visitors WHERE last_seen <= :visitor_cutoff');
-                $cleanup->execute([':visitor_cutoff' => $now - VISIT_WINDOW]);
-                $cleanup = $pdo->prepare('DELETE FROM counter_rate_limits WHERE window_started <= :rate_cutoff');
-                $cleanup->execute([':rate_cutoff' => $now - 86400]);
             }
 
             $visits = visitorCount();

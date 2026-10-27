@@ -191,6 +191,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     $ipHash = hash_hmac('sha256', 'guestbook-rate|' . clientIp(), counterSecret());
     $pdo->exec('BEGIN IMMEDIATE TRANSACTION');
     try {
+        $cleanup = $pdo->prepare('DELETE FROM guestbook_rate_limits WHERE window_started <= :cutoff');
+        $cleanup->execute([':cutoff' => $now - 86400]);
         $rate = $pdo->prepare('INSERT INTO guestbook_rate_limits (ip_hash, window_started, requests) VALUES (:ip_hash, :started, 1)
             ON CONFLICT(ip_hash) DO UPDATE SET
                 window_started = CASE WHEN guestbook_rate_limits.window_started <= :cutoff THEN :reset_time ELSE guestbook_rate_limits.window_started END,
@@ -199,10 +201,6 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         $rateQuery = $pdo->prepare('SELECT requests FROM guestbook_rate_limits WHERE ip_hash = :ip_hash');
         $rateQuery->execute([':ip_hash' => $ipHash]);
         $requests = (int) $rateQuery->fetchColumn();
-        if (random_int(1, 100) === 1) {
-            $cleanup = $pdo->prepare('DELETE FROM guestbook_rate_limits WHERE window_started <= :cutoff');
-            $cleanup->execute([':cutoff' => $now - 86400]);
-        }
         if ($requests > 3) {
             $pdo->exec('COMMIT');
             guestbookRedirect('slow-down');
