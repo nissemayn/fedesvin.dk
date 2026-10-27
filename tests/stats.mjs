@@ -52,6 +52,7 @@ try {
   assert.equal((await request('/s/abcdef123456')).headers.get('location'), 'https://morten.fedesvin.dk/p/abcdef123456', 'Legacy shortlinks survive migration');
   const legacyPageHtml = await (await request('/p/abcdef123456', 'morten.fedesvin.dk')).text();
   const legacyPig = legacyPageHtml.match(/class="mascot" data-pig="([a-z]+)"/)[1];
+  assert.match(legacyPageHtml, /data-pig-fixed="true"/, 'Shortlink page marks its saved pig variant as fixed');
   assert.ok(['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'].includes(legacyPig), 'Legacy links receive a valid migrated pig variant');
   const legacyReloadHtml = await (await request('/p/abcdef123456', 'morten.fedesvin.dk')).text();
   assert.match(legacyReloadHtml, new RegExp(`class="mascot" data-pig="${legacyPig}"`), 'Migrated pig variant stays fixed across reloads');
@@ -70,6 +71,7 @@ try {
   assert.match(personalHtml, /&lt;script&gt;alert\(&quot;øf&quot;\)&lt;\/script&gt;/);
   assert.doesNotMatch(personalHtml, /<script>alert/);
   const personalPig = personalHtml.match(/class="mascot" data-pig="([a-z]+)"/)[1];
+  assert.match(personalHtml, /data-pig-fixed="true"/);
   assert.ok(['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'].includes(personalPig));
   assert.match(personalHtml, new RegExp(`property="og:image" content="https://fedesvin.dk/share-image.png\\?code=${personalCode}&amp;art=\\d+&amp;v=${personalPig}"`), 'Share preview image uses the link pig variant');
   const personalReloadHtml = await (await request(`/p/${personalCode}`, 'oejvind.fedesvin.dk')).text();

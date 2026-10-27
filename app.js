@@ -124,7 +124,10 @@ if (pig) {
   const variants = ['classic', 'rose', 'mint', 'business', 'party', 'royal', 'goth', 'pirate', 'space'];
   const previous = readPreference('fedesvin-last-pig');
   const choices = variants.filter((variant) => variant !== previous);
-  const variant = choices[Math.floor(Math.random() * choices.length)];
+  const savedVariant = pig.dataset.pig;
+  const variant = pig.dataset.pigFixed === 'true' && variants.includes(savedVariant)
+    ? savedVariant
+    : choices[Math.floor(Math.random() * choices.length)];
   pig.dataset.pig = variant;
   savePreference('fedesvin-last-pig', variant);
   document.querySelectorAll('[data-image-download]').forEach((link) => {
